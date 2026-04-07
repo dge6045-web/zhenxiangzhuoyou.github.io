@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿瓦隆上帝语音播报系统 · 稳定版</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: #2c3e50; color: #ecf0f1; font-family: 微软雅黑, sans-serif; padding: 20px; }
+        .title { text-align: center; margin-bottom: 30px; color: #3498db; font-size: 24px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .number-select { text-align: center; margin-bottom: 30px; }
+        .number-btn { padding: 15px 30px; margin: 0 10px; border: none; border-radius: 8px; background-color: #3498db; color: white; font-size: 18px; cursor: pointer; }
+        .number-btn.active { background-color: #2ecc71; }
+        .control-area { text-align: center; margin-bottom: 30px; }
+        .control-btn { padding: 15px 25px; margin: 0 10px; border: none; border-radius: 8px; background-color: #e74c3c; color: white; font-size: 16px; cursor: pointer; }
+        .speed-control { margin-top: 20px; }
+        .script-area { background-color: #34495e; padding: 20px; border-radius: 8px; height: 300px; overflow-y: auto; margin-bottom: 30px; }
+        .script-line { margin: 10px 0; line-height: 1.8; }
+        .script-line.current { color: #3498db; font-weight: bold; }
+        .script-line.past { color: #95a5a6; }
+        .footer { text-align: center; color: #bdc3c7; }
+    </style>
+</head>
+<body>
+    <h1 class="title">🎭 阿瓦隆上帝语音播报系统</h1>
+    <div class="container">
+        <div class="number-select">
+            <p>请选择游戏人数：</p>
+            <button class="number-btn" data-number="5">5人局</button>
+            <button class="number-btn" data-number="7">7人局</button>
+            <button class="number-btn" data-number="8">8人局</button>
+            <button class="number-btn" data-number="10">10人局</button>
+        </div>
+
+        <div class="control-area" style="display: none;">
+            <button class="control-btn" id="prevBtn">⏮ 上一句</button>
+            <button class="control-btn" id="playBtn">▶ 播放</button>
+            <button class="control-btn" id="restartBtn">🔄 重新播放</button>
+            <button class="control-btn" id="nextBtn">⏭ 下一步</button>
+            <div class="speed-control">
+                <label>语速：</label>
+                <input type="range" id="speedSlider" min="0.8" max="1.5" step="0.1" value="1.0">
+                <span id="speedText">1.0倍</span>
+            </div>
+        </div>
+
+        <div class="script-area" id="scriptArea">
+            <p class="script-line">请先选择游戏人数，将自动加载对应播报脚本...</p>
+        </div>
+
+        <div class="footer">
+            <p>播报时建议保持手机亮屏 | 点击「重新播放」将自动从头播报</p>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- DOM 元素 ----------
+            const numberBtns = document.querySelectorAll('.number-btn');
+            const controlArea = document.querySelector('.control-area');
+            const scriptArea = document.getElementById('scriptArea');
+            const playBtn = document.getElementById('playBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const speedSlider = document.getElementById('speedSlider');
+            const speedText = document.getElementById('speedText');
+
+            // ---------- 全局变量 ----------
+            let currentSpeed = parseFloat(speedSlider.value);   // 语速
+            let currentScript = [];          // 当前台词数组
+            let currentIndex = 0;            // 当前播放索引
+            let audio = null;                // 当前语音实例
+            let isPlaying = false;           // 是否正在播放
+
+            // ---------- 台词库（保持你原有的内容）----------
+            const scripts = {
+                5: [
+                    "【通用开场】各位玩家，身份卡牌已悉数分发，请确认自己的身份，游戏即将开始。",
+                    "本局为5人标准局",
+                    "现在，请所有玩家闭眼。",
+                    "【停顿2秒】请莫甘娜、刺客睁眼。请莫甘娜、刺客睁眼。互认同伴身份。互认同伴身份。请莫甘娜、刺客闭眼。请莫甘娜、刺客闭眼。",
+                    "【停顿2秒】请梅林睁眼。莫甘娜、刺客请比大拇指。莫甘娜、刺客请比大拇指。梅林确认身份，莫甘娜、刺客收大拇指。请梅林闭眼。请梅林闭眼。",
+                    "【停顿2秒】请派西维尔睁眼。莫甘娜、梅林请比大拇指。莫甘娜、梅林请比大拇指。派西维尔确认身份。莫甘娜、梅林收大拇指。请派西维尔闭眼。请派西维尔闭眼。",
+                    "【停顿2秒】所有人调整面部表情，3、2、1，请各位玩家睁眼。"
+                ],
+                7: [
+                    "【通用开场】各位玩家，身份卡牌已悉数分发，请确认自己的身份，游戏即将开始。",
+                    "本局为7人标准局，",
+                    "现在，请所有玩家闭眼。",
+                    "【停顿2秒】请莫甘娜、刺客睁眼。请莫甘娜、刺客睁眼。互认同伴身份。互认同伴身份。请莫甘娜、刺客闭眼。请莫甘娜、刺客闭眼。",
+                    "【停顿2秒】请梅林睁眼。莫甘娜、刺客、奥伯伦请比大拇指。莫甘娜、刺客、奥伯伦请比大拇指。梅林确认身份，莫甘娜、刺客、奥伯伦收大拇指。请梅林闭眼。请梅林闭眼。",
+                    "【停顿2秒】请派西维尔睁眼。莫甘娜、梅林请比大拇指。莫甘娜、梅林请比大拇指。派西维尔确认身份。莫甘娜、梅林收大拇指。请派西维尔闭眼。请派西维尔闭眼。",
+                    "【停顿2秒】所有人调整面部表情，3、2、1，请各位玩家睁眼。"
+                ],
+                8: [
+                    "【通用开场】各位玩家，身份卡牌已悉数分发，请确认自己的身份，游戏即将开始。",
+                    "本局为8人标准局，",
+                    "现在，请所有玩家闭眼。",
+                    "【停顿2秒】请莫甘娜、刺客、莫德雷德睁眼。请莫甘娜、刺客、莫德雷德睁眼。互认同伴身份。互认同伴身份。请莫甘娜、刺客、莫德雷德闭眼。请莫甘娜、刺客、莫德雷德闭眼。",
+                    "【停顿2秒】请梅林睁眼。莫甘娜、刺客请比大拇指。莫甘娜、刺客请比大拇指。梅林确认身份，莫甘娜、刺客、收大拇指。请梅林闭眼。请梅林闭眼。",
+                    "【停顿2秒】请派西维尔睁眼。莫甘娜、梅林请比大拇指。莫甘娜、梅林请比大拇指。派西维尔确认身份。莫甘娜、梅林收大拇指。请派西维尔闭眼。请派西维尔闭眼。",
+                    "【停顿2秒】所有人调整面部表情，3、2、1，请各位玩家睁眼。"
+                ],
+                10: [
+                    "【通用开场】各位玩家，身份卡牌已悉数分发，请确认自己的身份，游戏即将开始。",
+                    "本局为10人标准局，",
+                    "现在，请所有玩家闭眼。",
+                    "【停顿2秒】请莫甘娜、刺客、莫德雷德睁眼。请莫甘娜、刺客、莫德雷德睁眼。互认同伴身份。互认同伴身份。请莫甘娜、刺客、莫德雷德闭眼。请莫甘娜、刺客、莫德雷德闭眼。",
+                    "【停顿2秒】请梅林睁眼。莫甘娜、刺客、奥伯伦请比大拇指。莫甘娜、刺客、奥伯伦请比大拇指。梅林确认身份。莫甘娜、刺客、奥伯伦收大拇指。请梅林闭眼。请梅林闭眼。",
+                    "【停顿2秒】请派西维尔睁眼。莫甘娜、梅林请比大拇指。莫甘娜、梅林请比大拇指。派西维尔确认身份。莫甘娜、梅林收大拇指。请派西维尔闭眼。请派西维尔闭眼。",
+                    "【停顿2秒】所有人调整面部表情，3、2、1，请各位玩家睁眼。"
+                ]
+            };
+
+            // ---------- 渲染台词 ----------
+            function renderScript() {
+                scriptArea.innerHTML = '';
+                currentScript.forEach((line, index) => {
+                    const div = document.createElement('div');
+                    div.className = `script-line ${index === currentIndex ? 'current' : index < currentIndex ? 'past' : ''}`;
+                    div.textContent = line;
+                    scriptArea.appendChild(div);
+                });
+                scriptArea.scrollTop = scriptArea.scrollHeight;
+            }
+
+            // ---------- 核心播放函数（无语音筛选，纯默认）----------
+            function playCurrentLine(retryCount = 0) {
+                if (currentIndex >= currentScript.length) currentIndex = 0;
+                const rawText = currentScript[currentIndex];
+                const cleanText = rawText.replace(/【.*?】/g, '').trim();
+                if (!cleanText) {
+                    currentIndex = (currentIndex + 1) % currentScript.length;
+                    renderScript();
+                    playCurrentLine();
+                    return;
+                }
+
+                // 播放前取消所有语音，避免冲突
+                if (speechSynthesis.speaking || speechSynthesis.pending) {
+                    speechSynthesis.cancel();
+                }
+
+                audio = new SpeechSynthesisUtterance(cleanText);
+                audio.lang = 'zh-CN';
+                audio.rate = currentSpeed;
+
+                audio.onend = () => {
+                    currentIndex += 1;
+                    renderScript();
+                    if (currentIndex < currentScript.length) {
+                        playCurrentLine();
+                    } else {
+                        playBtn.textContent = '▶ 播放';
+                        audio = null;
+                        isPlaying = false;
+                        currentIndex = 0;
+                        renderScript();
+                    }
+                };
+
+                audio.onerror = (e) => {
+                    if (e.error === 'canceled' || e.error === 'interrupted') {
+                        console.log('语音播报正常中断');
+                        audio = null;
+                        return;
+                    }
+
+                    if (retryCount === 0) {
+                        console.warn(`语音播报出错 (${e.error})，尝试重试...`);
+                        setTimeout(() => playCurrentLine(1), 100);
+                        return;
+                    }
+
+                    console.error('语音播报失败:', e.error);
+                    const toast = document.createElement('div');
+                    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#e74c3c;color:white;padding:10px 20px;border-radius:30px;z-index:9999;';
+                    toast.textContent = '⚠️ 语音播放失败，可尝试刷新页面或使用Chrome浏览器';
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 4000);
+
+                    playBtn.textContent = '▶ 播放';
+                    audio = null;
+                    isPlaying = false;
+                };
+
+                speechSynthesis.speak(audio);
+                isPlaying = true;
+            }
+
+            // ---------- 事件绑定 ----------
+
+            // 1. 选择人数（带确认框）
+            numberBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const confirmSwitch = confirm(`确认切换到${btn.dataset.number}人局吗？切换后将重置当前播报进度。`);
+                    if (!confirmSwitch) return;
+
+                    numberBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    speechSynthesis.cancel();
+                    audio = null;
+                    isPlaying = false;
+                    playBtn.textContent = '▶ 播放';
+
+                    const num = parseInt(btn.dataset.number);
+                    currentScript = scripts[num] || [];
+                    currentIndex = 0;
+                    controlArea.style.display = 'block';
+                    renderScript();
+
+                    // 预加载语音权限（可选）
+                    speechSynthesis.getVoices();
+                });
+            });
+
+            // 2. 播放/暂停
+            playBtn.addEventListener('click', () => {
+                if (currentScript.length === 0) {
+                    alert('请先选择游戏人数');
+                    return;
+                }
+                if (!isPlaying) {
+                    playCurrentLine();
+                    playBtn.textContent = '⏸ 暂停';
+                } else {
+                    speechSynthesis.cancel();
+                    audio = null;
+                    playBtn.textContent = '▶ 播放';
+                    isPlaying = false;
+                }
+            });
+
+            // 3. 重新播放（自动开始）
+            restartBtn.addEventListener('click', () => {
+                if (currentScript.length === 0) return;
+                speechSynthesis.cancel();
+                audio = null;
+                currentIndex = 0;
+                isPlaying = false;
+                renderScript();
+                playCurrentLine();
+                playBtn.textContent = '⏸ 暂停';
+                isPlaying = true;
+            });
+
+            // 4. 下一步（根据之前状态决定是否自动播放）
+            nextBtn.addEventListener('click', () => {
+                if (currentScript.length === 0) return;
+                const wasPlaying = isPlaying;
+                speechSynthesis.cancel();
+                audio = null;
+                currentIndex = (currentIndex + 1) % currentScript.length;
+                renderScript();
+                if (wasPlaying) {
+                    playCurrentLine();
+                    playBtn.textContent = '⏸ 暂停';
+                    isPlaying = true;
+                } else {
+                    playBtn.textContent = '▶ 播放';
+                    isPlaying = false;
+                }
+            });
+
+            // 5. 上一句（逻辑同上）
+            prevBtn.addEventListener('click', () => {
+                if (currentScript.length === 0) return;
+                const wasPlaying = isPlaying;
+                speechSynthesis.cancel();
+                audio = null;
+                currentIndex = (currentIndex - 1 + currentScript.length) % currentScript.length;
+                renderScript();
+                if (wasPlaying) {
+                    playCurrentLine();
+                    playBtn.textContent = '⏸ 暂停';
+                    isPlaying = true;
+                } else {
+                    playBtn.textContent = '▶ 播放';
+                    isPlaying = false;
+                }
+            });
+
+            // 6. 语速调节
+            speedSlider.addEventListener('input', () => {
+                currentSpeed = parseFloat(speedSlider.value);
+                speedText.textContent = currentSpeed.toFixed(1) + '倍';
+                if (audio) {
+                    audio.playbackRate = currentSpeed;
+                }
+            });
+
+            // 初始化显示
+            renderScript();
+            speedText.textContent = currentSpeed.toFixed(1) + '倍';
+        })();
+    </script>
+</body>
+</html>
