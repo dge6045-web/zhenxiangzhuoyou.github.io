@@ -2,29 +2,38 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>阿瓦隆上帝语音播报系统 · 稳定版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>阿瓦隆上帝语音播报 · 华为优化版</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: #2c3e50; color: #ecf0f1; font-family: 微软雅黑, sans-serif; padding: 20px; }
-        .title { text-align: center; margin-bottom: 30px; color: #3498db; font-size: 24px; }
+        body { background-color: #2c3e50; color: #ecf0f1; font-family: 微软雅黑, sans-serif; padding: 15px; }
+        .title { text-align: center; margin-bottom: 20px; color: #3498db; font-size: 22px; }
         .container { max-width: 800px; margin: 0 auto; }
-        .number-select { text-align: center; margin-bottom: 30px; }
-        .number-btn { padding: 15px 30px; margin: 0 10px; border: none; border-radius: 8px; background-color: #3498db; color: white; font-size: 18px; cursor: pointer; }
+        .number-select { text-align: center; margin-bottom: 25px; }
+        .number-btn { padding: 12px 20px; margin: 5px; border: none; border-radius: 8px; background-color: #3498db; color: white; font-size: 16px; cursor: pointer; }
         .number-btn.active { background-color: #2ecc71; }
-        .control-area { text-align: center; margin-bottom: 30px; }
-        .control-btn { padding: 15px 25px; margin: 0 10px; border: none; border-radius: 8px; background-color: #e74c3c; color: white; font-size: 16px; cursor: pointer; }
+        .control-area { text-align: center; margin-bottom: 25px; }
+        .control-btn { padding: 12px 18px; margin: 5px; border: none; border-radius: 8px; background-color: #e74c3c; color: white; font-size: 15px; cursor: pointer; }
         .speed-control { margin-top: 20px; }
-        .script-area { background-color: #34495e; padding: 20px; border-radius: 8px; height: 300px; overflow-y: auto; margin-bottom: 30px; }
-        .script-line { margin: 10px 0; line-height: 1.8; }
+        .script-area { background-color: #34495e; padding: 15px; border-radius: 8px; height: 280px; overflow-y: auto; margin-bottom: 20px; }
+        .script-line { margin: 10px 0; line-height: 1.8; font-size: 15px; }
         .script-line.current { color: #3498db; font-weight: bold; }
         .script-line.past { color: #95a5a6; }
-        .footer { text-align: center; color: #bdc3c7; }
+        .footer { text-align: center; color: #bdc3c7; font-size: 13px; margin-top: 10px; }
+        .status-tip { color: #f1c40f; margin: 8px 0; font-size: 14px; text-align: center; }
+        .wake-btn { background-color: #9b59b6; }
+        .note { background-color: #1e2b38; padding: 10px; border-radius: 6px; margin-bottom: 15px; color: #bdc3c7; font-size: 13px; }
     </style>
 </head>
 <body>
-    <h1 class="title">🎭 阿瓦隆上帝语音播报系统</h1>
+    <h1 class="title">🎭 阿瓦隆上帝语音播报</h1>
     <div class="container">
+        <div class="note">
+            <strong>📱 华为手机使用提示：</strong><br>
+            1. 点击地址栏锁图标 → 允许「声音」权限<br>
+            2. 首次使用请点击下方「唤醒语音」按钮激活引擎
+        </div>
+
         <div class="number-select">
             <p>请选择游戏人数：</p>
             <button class="number-btn" data-number="5">5人局</button>
@@ -34,15 +43,22 @@
         </div>
 
         <div class="control-area" style="display: none;">
-            <button class="control-btn" id="prevBtn">⏮ 上一句</button>
-            <button class="control-btn" id="playBtn">▶ 播放</button>
-            <button class="control-btn" id="restartBtn">🔄 重新播放</button>
-            <button class="control-btn" id="nextBtn">⏭ 下一步</button>
+            <div>
+                <button class="control-btn" id="prevBtn">⏮ 上一句</button>
+                <button class="control-btn" id="playBtn">▶ 播放</button>
+                <button class="control-btn" id="restartBtn">🔄 重播</button>
+                <button class="control-btn" id="nextBtn">⏭ 下一句</button>
+            </div>
             <div class="speed-control">
                 <label>语速：</label>
                 <input type="range" id="speedSlider" min="0.8" max="1.5" step="0.1" value="1.0">
                 <span id="speedText">1.0倍</span>
             </div>
+            <div>
+                <button class="control-btn wake-btn" id="wakeVoiceBtn">🔊 唤醒语音引擎</button>
+                <button class="control-btn test-btn" id="testVoiceBtn">🎵 测试语音</button>
+            </div>
+            <div id="voiceStatus" class="status-tip">⏳ 语音引擎加载中...</div>
         </div>
 
         <div class="script-area" id="scriptArea">
@@ -50,7 +66,7 @@
         </div>
 
         <div class="footer">
-            <p>播报时建议保持手机亮屏 | 点击「重新播放」将自动从头播报</p>
+            <p>点击「唤醒语音」后再播放 | 华为浏览器已适配</p>
         </div>
     </div>
 
@@ -66,15 +82,90 @@
             const prevBtn = document.getElementById('prevBtn');
             const speedSlider = document.getElementById('speedSlider');
             const speedText = document.getElementById('speedText');
+            const testVoiceBtn = document.getElementById('testVoiceBtn');
+            const wakeVoiceBtn = document.getElementById('wakeVoiceBtn');
+            const voiceStatus = document.getElementById('voiceStatus');
 
             // ---------- 全局变量 ----------
-            let currentSpeed = parseFloat(speedSlider.value);   // 语速
-            let currentScript = [];          // 当前台词数组
-            let currentIndex = 0;            // 当前播放索引
-            let audio = null;                // 当前语音实例
-            let isPlaying = false;           // 是否正在播放
+            let currentSpeed = parseFloat(speedSlider.value);
+            let currentScript = [];
+            let currentIndex = 0;
+            let audio = null;
+            let isPlaying = false;
+            let speechSupported = 'speechSynthesis' in window;
+            let voiceReady = false;
 
-            // ---------- 台词库（保持你原有的内容）----------
+            // 状态提示更新
+            function setStatus(text, isGood = true) {
+                voiceStatus.textContent = text;
+                voiceStatus.style.color = isGood ? '#2ecc71' : '#f1c40f';
+            }
+
+            // 检查语音支持
+            if (!speechSupported) {
+                setStatus('❌ 浏览器不支持语音播报，请更换浏览器', false);
+            } else {
+                // 预加载语音列表（华为浏览器需要主动且多次调用）
+                function loadVoices() {
+                    speechSynthesis.getVoices();
+                    // 华为浏览器 onvoiceschanged 可能不触发，用定时器轮询
+                    let attempts = 0;
+                    const checkInterval = setInterval(() => {
+                        const voices = speechSynthesis.getVoices();
+                        if (voices.length > 0 || attempts > 5) {
+                            clearInterval(checkInterval);
+                            voiceReady = true;
+                            setStatus('✅ 语音引擎就绪，可正常使用');
+                        }
+                        attempts++;
+                    }, 300);
+                }
+                loadVoices();
+                // 同时也监听标准事件
+                speechSynthesis.onvoiceschanged = () => {
+                    voiceReady = true;
+                    setStatus('✅ 语音引擎就绪，可正常使用');
+                };
+            }
+
+            // 强制唤醒语音引擎（针对华为浏览器）
+            function forceWakeVoice() {
+                if (!speechSupported) return;
+                setStatus('🔄 正在唤醒语音引擎...');
+                // 发送一个无声的短语音来激活引擎
+                const wakeUtter = new SpeechSynthesisUtterance('');
+                wakeUtter.volume = 0;
+                wakeUtter.rate = 1;
+                wakeUtter.onend = () => {
+                    setStatus('✅ 语音引擎已唤醒');
+                    voiceReady = true;
+                };
+                wakeUtter.onerror = () => {
+                    setStatus('⚠️ 唤醒失败，请检查浏览器声音权限', false);
+                };
+                speechSynthesis.cancel();
+                speechSynthesis.speak(wakeUtter);
+            }
+
+            // 测试语音
+            function testVoice() {
+                if (!speechSupported) return;
+                const testUtter = new SpeechSynthesisUtterance('测试语音，如果你听到这句话，说明语音功能正常。');
+                testUtter.lang = 'zh-CN';
+                testUtter.rate = 1.0;
+                testUtter.onstart = () => setStatus('🔊 正在测试...');
+                testUtter.onend = () => setStatus('✅ 测试通过！可以正常播报');
+                testUtter.onerror = (e) => {
+                    setStatus(`❌ 测试失败: ${e.error}，请尝试点击「唤醒语音」`, false);
+                };
+                speechSynthesis.cancel();
+                speechSynthesis.speak(testUtter);
+            }
+
+            wakeVoiceBtn.addEventListener('click', forceWakeVoice);
+            testVoiceBtn.addEventListener('click', testVoice);
+
+            // ---------- 台词库 ----------
             const scripts = {
                 5: [
                     "【通用开场】各位玩家，身份卡牌已悉数分发，请确认自己的身份，游戏即将开始。",
@@ -114,7 +205,7 @@
                 ]
             };
 
-            // ---------- 渲染台词 ----------
+            // 渲染
             function renderScript() {
                 scriptArea.innerHTML = '';
                 currentScript.forEach((line, index) => {
@@ -126,8 +217,9 @@
                 scriptArea.scrollTop = scriptArea.scrollHeight;
             }
 
-            // ---------- 核心播放函数（无语音筛选，纯默认）----------
+            // 播放核心
             function playCurrentLine(retryCount = 0) {
+                if (!speechSupported) return;
                 if (currentIndex >= currentScript.length) currentIndex = 0;
                 const rawText = currentScript[currentIndex];
                 const cleanText = rawText.replace(/【.*?】/g, '').trim();
@@ -138,14 +230,18 @@
                     return;
                 }
 
-                // 播放前取消所有语音，避免冲突
-                if (speechSynthesis.speaking || speechSynthesis.pending) {
-                    speechSynthesis.cancel();
-                }
+                // 华为浏览器必须每次播放前cancel
+                speechSynthesis.cancel();
 
                 audio = new SpeechSynthesisUtterance(cleanText);
                 audio.lang = 'zh-CN';
                 audio.rate = currentSpeed;
+
+                audio.onstart = () => {
+                    isPlaying = true;
+                    playBtn.textContent = '⏸ 暂停';
+                    setStatus('🔊 正在播报...');
+                };
 
                 audio.onend = () => {
                     currentIndex += 1;
@@ -158,83 +254,64 @@
                         isPlaying = false;
                         currentIndex = 0;
                         renderScript();
+                        setStatus('✅ 播报完毕');
                     }
                 };
 
                 audio.onerror = (e) => {
-                    if (e.error === 'canceled' || e.error === 'interrupted') {
-                        console.log('语音播报正常中断');
-                        audio = null;
-                        return;
-                    }
-
+                    if (e.error === 'canceled' || e.error === 'interrupted') return;
+                    
                     if (retryCount === 0) {
-                        console.warn(`语音播报出错 (${e.error})，尝试重试...`);
-                        setTimeout(() => playCurrentLine(1), 100);
+                        setStatus(`⚠️ 出错，正在重试... (${e.error})`, false);
+                        setTimeout(() => playCurrentLine(1), 300);
                         return;
                     }
-
-                    console.error('语音播报失败:', e.error);
-                    const toast = document.createElement('div');
-                    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#e74c3c;color:white;padding:10px 20px;border-radius:30px;z-index:9999;';
-                    toast.textContent = '⚠️ 语音播放失败，可尝试刷新页面或使用Chrome浏览器';
-                    document.body.appendChild(toast);
-                    setTimeout(() => toast.remove(), 4000);
-
+                    
+                    setStatus(`❌ 语音失败: ${e.error}，请点击「唤醒语音」`, false);
                     playBtn.textContent = '▶ 播放';
                     audio = null;
                     isPlaying = false;
                 };
 
                 speechSynthesis.speak(audio);
-                isPlaying = true;
             }
 
-            // ---------- 事件绑定 ----------
-
-            // 1. 选择人数（带确认框）
+            // 事件绑定
             numberBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const confirmSwitch = confirm(`确认切换到${btn.dataset.number}人局吗？切换后将重置当前播报进度。`);
+                    const confirmSwitch = confirm(`确认切换到${btn.dataset.number}人局吗？`);
                     if (!confirmSwitch) return;
-
                     numberBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-
                     speechSynthesis.cancel();
                     audio = null;
                     isPlaying = false;
                     playBtn.textContent = '▶ 播放';
-
-                    const num = parseInt(btn.dataset.number);
-                    currentScript = scripts[num] || [];
+                    currentScript = scripts[parseInt(btn.dataset.number)] || [];
                     currentIndex = 0;
                     controlArea.style.display = 'block';
                     renderScript();
-
-                    // 预加载语音权限（可选）
                     speechSynthesis.getVoices();
+                    setStatus('✅ 脚本已加载');
                 });
             });
 
-            // 2. 播放/暂停
             playBtn.addEventListener('click', () => {
                 if (currentScript.length === 0) {
-                    alert('请先选择游戏人数');
+                    alert('请先选择人数');
                     return;
                 }
                 if (!isPlaying) {
                     playCurrentLine();
-                    playBtn.textContent = '⏸ 暂停';
                 } else {
                     speechSynthesis.cancel();
                     audio = null;
                     playBtn.textContent = '▶ 播放';
                     isPlaying = false;
+                    setStatus('⏸ 已暂停');
                 }
             });
 
-            // 3. 重新播放（自动开始）
             restartBtn.addEventListener('click', () => {
                 if (currentScript.length === 0) return;
                 speechSynthesis.cancel();
@@ -243,11 +320,8 @@
                 isPlaying = false;
                 renderScript();
                 playCurrentLine();
-                playBtn.textContent = '⏸ 暂停';
-                isPlaying = true;
             });
 
-            // 4. 下一步（根据之前状态决定是否自动播放）
             nextBtn.addEventListener('click', () => {
                 if (currentScript.length === 0) return;
                 const wasPlaying = isPlaying;
@@ -257,15 +331,12 @@
                 renderScript();
                 if (wasPlaying) {
                     playCurrentLine();
-                    playBtn.textContent = '⏸ 暂停';
-                    isPlaying = true;
                 } else {
                     playBtn.textContent = '▶ 播放';
                     isPlaying = false;
                 }
             });
 
-            // 5. 上一句（逻辑同上）
             prevBtn.addEventListener('click', () => {
                 if (currentScript.length === 0) return;
                 const wasPlaying = isPlaying;
@@ -275,24 +346,18 @@
                 renderScript();
                 if (wasPlaying) {
                     playCurrentLine();
-                    playBtn.textContent = '⏸ 暂停';
-                    isPlaying = true;
                 } else {
                     playBtn.textContent = '▶ 播放';
                     isPlaying = false;
                 }
             });
 
-            // 6. 语速调节
             speedSlider.addEventListener('input', () => {
                 currentSpeed = parseFloat(speedSlider.value);
                 speedText.textContent = currentSpeed.toFixed(1) + '倍';
-                if (audio) {
-                    audio.playbackRate = currentSpeed;
-                }
+                if (audio) audio.playbackRate = currentSpeed;
             });
 
-            // 初始化显示
             renderScript();
             speedText.textContent = currentSpeed.toFixed(1) + '倍';
         })();
