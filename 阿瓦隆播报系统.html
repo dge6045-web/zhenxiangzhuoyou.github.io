@@ -197,24 +197,22 @@
         /* ========== 版图页 ========== */
         #gameBoardPage {
             position: relative;
-            overflow: hidden;           /* 禁止滚动 */
+            overflow: hidden;
             background-color: #0f172a;
         }
 
-        /* 宽银幕容器（产品经理指定版） */
         .cinema-screen {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 100vh;               /* 用高度当宽度 */
-            height: 56.25vh;            /* 16:9 */
+            width: 100vh;
+            height: 56.25vh;
             transform: translate(-50%, -50%) rotate(90deg);
             background: url('images/board-bg.jpg') no-repeat center center/cover;
             overflow: hidden;
             box-shadow: 0 0 30px rgba(0,0,0,0.8);
         }
 
-        /* 横屏时恢复正常（平板/电脑） */
         @media (orientation: landscape) {
             .cinema-screen {
                 transform: translate(-50%, -50%) rotate(0deg);
@@ -242,22 +240,6 @@
             padding: 16px;
         }
 
-        .back-btn {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(8px);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 8px 16px;
-            border-radius: 40px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 10;
-        }
-
         .task-icons-row {
             display: flex;
             flex-direction: row;
@@ -271,6 +253,7 @@
         }
 
         .task-icon {
+            position: relative;
             flex: 1 1 0;
             min-width: 0;
             max-width: 18%;
@@ -280,6 +263,7 @@
             backdrop-filter: blur(8px);
             border: 3px solid rgba(255,255,255,0.4);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             font-size: clamp(24px, 8vw, 80px);
@@ -290,6 +274,21 @@
             transition: all 0.2s;
             cursor: pointer;
             user-select: none;
+        }
+
+        .task-icon .task-number {
+            line-height: 1;
+        }
+
+        .fixed-fail-marks {
+            position: absolute;
+            bottom: 2px;
+            font-size: clamp(14px, 4vw, 32px);
+            color: #e74c3c;
+            text-shadow: 1px 1px 3px black;
+            font-weight: bold;
+            letter-spacing: 2px;
+            pointer-events: none;
         }
 
         .task-icon.state-success {
@@ -305,6 +304,7 @@
             display: flex;
             gap: 16px;
             margin-top: 8px;
+            justify-content: center;
         }
         .board-btn {
             background: rgba(0,0,0,0.6);
@@ -413,10 +413,10 @@
     <div id="gameBoardPage" class="page">
         <div class="cinema-screen">
             <div class="board-overlay"></div>
-            <button class="back-btn" id="backToNarratorBtn">← 返回主持</button>
             <div class="board-content">
                 <div class="task-icons-row" id="taskIconsContainer"></div>
                 <div class="board-actions">
+                    <button class="board-btn" id="backToNarratorBtn">← 返回主持</button>
                     <button class="board-btn" id="resetRoundBtn">🔄 重置本轮</button>
                 </div>
             </div>
@@ -466,6 +466,12 @@
                 7: [2,3,3,4,4],
                 8: [3,4,4,5,5],
                 10:[3,4,4,5,5]
+            };
+
+            // 固定失败标记配置
+            const fixedFailConfig = {
+                7: [3],      // 索引3（第4个图标）显示❌❌
+                8: [3, 4]    // 索引3和4（第4、5个图标）显示❌❌
             };
 
             let taskStates = [0,0,0,0,0];
@@ -702,13 +708,28 @@
             // 版图逻辑
             function renderTaskIcons() {
                 const numbers = taskNumberMap[selectedPlayerCount] || [2,3,2,3,3];
+                const failIndices = fixedFailConfig[selectedPlayerCount] || [];
                 taskIconsContainer.innerHTML = '';
                 taskStates.forEach((state, idx) => {
                     const icon = document.createElement('div');
                     icon.className = 'task-icon';
                     if (state === 1) icon.classList.add('state-success');
                     else if (state === 2) icon.classList.add('state-fail');
-                    icon.textContent = numbers[idx];
+                    
+                    // 数字部分
+                    const numberSpan = document.createElement('span');
+                    numberSpan.className = 'task-number';
+                    numberSpan.textContent = numbers[idx];
+                    icon.appendChild(numberSpan);
+                    
+                    // 固定失败标记
+                    if (failIndices.includes(idx)) {
+                        const failMark = document.createElement('div');
+                        failMark.className = 'fixed-fail-marks';
+                        failMark.textContent = '❌❌';
+                        icon.appendChild(failMark);
+                    }
+                    
                     icon.dataset.index = idx;
                     icon.addEventListener('click', (e) => {
                         const i = parseInt(e.currentTarget.dataset.index);
@@ -733,8 +754,6 @@
                 } else {
                     gameBoardPage.classList.add('active');
                     renderTaskIcons();
-                    // 可选的提示
-                    // alert("📱 请保持手机竖屏，已自动进入横屏观感模式");
                 }
             }
 
