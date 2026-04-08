@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>阿瓦隆 · 昼夜交替语音主持</title>
+    <title>真香桌游·阿瓦隆</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -39,54 +39,136 @@
             flex-direction: column;
         }
 
-        .title { text-align: center; margin: 10px 0 20px; color: #f1c40f; font-size: 7vw; font-weight: 500; text-shadow: 2px 2px 6px rgba(0,0,0,0.7); }
+        /* 标题区域：Logo + 文字 */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 10px 0 20px;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+        }
+        #siteLogo {
+            height: 40px;
+            width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        .title { 
+            color: #f1c40f; 
+            font-size: 7vw; 
+            font-weight: 500; 
+            margin: 0;
+            white-space: nowrap;
+        }
+
         .container { max-width: 700px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; position: relative; z-index: 2; }
+
+        /* 人数选择区域 */
         .number-select { text-align: center; margin-bottom: 25px; }
         .number-select p { font-size: 18px; margin-bottom: 12px; text-shadow: 1px 1px 3px black; }
+        .number-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
         .number-btn { 
-            padding: 16px 20px; margin: 6px; border: none; border-radius: 50px; 
-            background: rgba(44, 62, 80, 0.8); backdrop-filter: blur(8px);
-            color: white; font-size: 18px; font-weight: bold; 
-            cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.4); min-width: 90px; 
-            border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s;
+            padding: 16px 12px; 
+            border: none; 
+            border-radius: 50px; 
+            background: rgba(44, 62, 80, 0.8); 
+            backdrop-filter: blur(8px);
+            color: white; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            transition: all 0.2s;
+            text-align: center;
         }
         .number-btn.active { background: #27ae60; border-color: #2ecc71; transform: scale(0.97); }
+
+        /* 控制区域 */
         .control-area { text-align: center; margin-bottom: 20px; }
-        .control-btn { 
-            padding: 14px 18px; margin: 5px; border: none; border-radius: 40px; 
-            background: rgba(192, 57, 43, 0.85); backdrop-filter: blur(8px);
-            color: white; font-size: 18px; font-weight: bold; 
-            cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.4); min-width: 85px; 
-            border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s;
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            max-width: 400px;
+            margin: 0 auto;
         }
+        .control-btn { 
+            padding: 14px 12px; 
+            border: none; 
+            border-radius: 40px; 
+            background: rgba(192, 57, 43, 0.85); 
+            backdrop-filter: blur(8px);
+            color: white; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            transition: all 0.2s;
+            text-align: center;
+            white-space: nowrap;
+        }
+        /* 移动端如果屏幕太小，允许“从头开始”换行 */
+        @media (max-width: 400px) {
+            .control-btn { white-space: normal; line-height: 1.2; }
+        }
+
         .script-area { 
-            background: rgba(30, 43, 56, 0.75); backdrop-filter: blur(12px);
-            padding: 20px 16px; border-radius: 24px; 
-            min-height: 320px; max-height: 50vh; overflow-y: auto; margin: 15px 0 20px; 
+            background: rgba(30, 43, 56, 0.75); 
+            backdrop-filter: blur(12px);
+            padding: 20px 16px; 
+            border-radius: 24px; 
+            min-height: 320px; 
+            max-height: 50vh; 
+            overflow-y: auto; 
+            margin: 15px 0 20px; 
             border: 1px solid rgba(255,255,255,0.15);
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
         .script-line { 
-            margin: 18px 0; line-height: 1.6; font-size: 20px; padding: 8px 12px; 
-            border-radius: 16px; transition: all 0.2s; text-shadow: 1px 1px 4px black;
+            margin: 18px 0; 
+            line-height: 1.6; 
+            font-size: 20px; 
+            padding: 8px 12px; 
+            border-radius: 16px; 
+            transition: all 0.2s; 
+            text-shadow: 1px 1px 4px black;
         }
         .script-line.current { 
-            color: #f1c40f; font-weight: bold; background: rgba(44, 62, 80, 0.7); 
-            border-left: 6px solid #f1c40f; padding-left: 18px;
+            color: #f1c40f; 
+            font-weight: bold; 
+            background: rgba(44, 62, 80, 0.7); 
+            border-left: 6px solid #f1c40f; 
+            padding-left: 18px;
         }
         .script-line.past { color: #b0bec5; text-decoration: line-through 1px rgba(176,190,197,0.5); }
         .footer { text-align: center; color: #ddd; font-size: 14px; margin-top: auto; padding: 15px 0 5px; text-shadow: 1px 1px 3px black; }
         .status-badge { 
-            display: inline-block; background: #27ae60; color: white; padding: 6px 18px; 
-            border-radius: 30px; font-size: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: inline-block; 
+            background: #27ae60; 
+            color: white; 
+            padding: 6px 18px; 
+            border-radius: 30px; 
+            font-size: 16px; 
+            margin-bottom: 12px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .audio-status { margin-top: 10px; font-size: 14px; opacity: 0.9; min-height: 24px; text-shadow: 1px 1px 2px black; }
 
+        /* 平板适配 */
         @media (min-width: 768px) {
-            .title { font-size: 36px; }
+            .title { font-size: 32px; }
             .script-line { font-size: 22px; }
-            .number-btn { padding: 18px 28px; font-size: 20px; }
-            .control-btn { padding: 16px 24px; font-size: 20px; }
+            .number-btn { padding: 18px 20px; font-size: 20px; }
+            .control-btn { padding: 16px 20px; font-size: 20px; }
+            #siteLogo { height: 48px; }
         }
     </style>
 </head>
@@ -99,26 +181,31 @@
     </div>
     <div class="overlay"></div>
 
-    <h1 class="title">🎭 阿瓦隆 · 昼夜神谕</h1>
+    <!-- 标题栏 -->
+    <div class="header">
+        <img id="siteLogo" src="images/logo.png" alt="真香桌游Logo" onerror="this.style.display='none'">
+        <h1 class="title">真香桌游·阿瓦隆</h1>
+    </div>
+
     <div class="container">
         <div class="number-select">
             <p>👥 选择游戏人数</p>
-            <button class="number-btn" data-number="5">5人局</button>
-            <button class="number-btn" data-number="7">7人局</button>
-            <button class="number-btn" data-number="8">8人局</button>
-            <button class="number-btn" data-number="10">10人局</button>
+            <div class="number-grid">
+                <button class="number-btn" data-number="5">5人局</button>
+                <button class="number-btn" data-number="7">7人局</button>
+                <button class="number-btn" data-number="8">8人局</button>
+                <button class="number-btn" data-number="10">10人局</button>
+            </div>
         </div>
 
         <div class="control-area" style="display: none;">
-            <div style="margin-bottom: 8px;">
+            <div style="margin-bottom: 12px;">
                 <span class="status-badge" id="progressBadge">第1 / 7句</span>
             </div>
-            <div>
+            <div class="control-grid">
                 <button class="control-btn" id="prevBtn">⏮ 上一句</button>
-                <button class="control-btn" id="playBtn">▶ 播放</button>
                 <button class="control-btn" id="nextBtn">⏭ 下一句</button>
-            </div>
-            <div style="margin-top: 16px;">
+                <button class="control-btn" id="playBtn">▶ 播放</button>
                 <button class="control-btn" id="restartBtn">🔄 从头开始</button>
             </div>
             <div class="audio-status" id="audioStatus">🎵 音频系统就绪</div>
@@ -166,7 +253,6 @@
                 bgDay.style.opacity = '1';
                 bgNight.style.opacity = '0';
             }
-            // 重置为白天（切换人数、初始化时使用）
             function resetToDay() {
                 switchToDay();
             }
@@ -225,7 +311,7 @@
                 if (currentScript.length === 0) return;
                 stopAudio();
                 
-                // 🌙 播报开始：切换黑夜背景
+                // 播报开始：切换黑夜背景
                 switchToNight();
 
                 const path = getAudioPath(currentNumber, currentIndex);
@@ -238,16 +324,13 @@
                     audioStatus.textContent = '⚠️ 音频加载失败，请检查文件是否存在';
                     isPlaying = false;
                     playBtn.textContent = '▶ 播放';
-                    // 如果播放失败，背景切回白天（可选）
-                    // switchToDay();
                 });
 
                 audio.onended = () => {
                     if (currentIndex < currentScript.length - 1) {
-                        // 继续播放下一句，背景保持黑夜
                         goToIndex(currentIndex + 1, true);
                     } else {
-                        // ☀️ 播报完毕：切换白天背景
+                        // 播报完毕：切换白天背景
                         switchToDay();
                         isPlaying = false;
                         playBtn.textContent = '▶ 播放';
@@ -261,7 +344,6 @@
                     audioStatus.textContent = `❌ 音频缺失：audio/${currentNumber}/${currentIndex}.mp3`;
                     isPlaying = false;
                     playBtn.textContent = '▶ 播放';
-                    // 出错时切回白天
                     switchToDay();
                 };
             }
@@ -308,7 +390,6 @@
                 controlArea.style.display = 'block';
                 renderScript();
                 audioStatus.textContent = '🎵 音频就绪';
-                // 切换人数时重置为白天
                 resetToDay();
             }
 
@@ -348,7 +429,6 @@
                 stopAudio();
                 currentIndex = 0;
                 renderScript();
-                // 从头播放视为新一轮播报，切换黑夜
                 playCurrentAudio();
             });
 
@@ -359,11 +439,9 @@
                 else if (e.key === ' ') { e.preventDefault(); playBtn.click(); }
             });
 
-            // 初始化：确保白天背景显示
+            // 初始化
             resetToDay();
             renderScript();
-
-            // 背景图加载失败时的降级处理（已在 onerror 中设置纯色背景）
         })();
     </script>
 </body>
