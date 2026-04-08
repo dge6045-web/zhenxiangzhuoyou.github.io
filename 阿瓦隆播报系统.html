@@ -2,40 +2,73 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>阿瓦隆上帝语音播报 · 华为优化版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>阿瓦隆 · 真人语音播报系统</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: #2c3e50; color: #ecf0f1; font-family: 微软雅黑, sans-serif; padding: 15px; }
-        .title { text-align: center; margin-bottom: 20px; color: #3498db; font-size: 22px; }
-        .container { max-width: 800px; margin: 0 auto; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            background-color: #1a252f; 
+            color: #ecf0f1; 
+            font-family: 'Segoe UI', '微软雅黑', system-ui, sans-serif; 
+            padding: 16px; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .title { text-align: center; margin: 10px 0 20px; color: #3498db; font-size: 7vw; font-weight: 500; letter-spacing: 2px; }
+        .container { max-width: 700px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; }
         .number-select { text-align: center; margin-bottom: 25px; }
-        .number-btn { padding: 12px 20px; margin: 5px; border: none; border-radius: 8px; background-color: #3498db; color: white; font-size: 16px; cursor: pointer; }
-        .number-btn.active { background-color: #2ecc71; }
-        .control-area { text-align: center; margin-bottom: 25px; }
-        .control-btn { padding: 12px 18px; margin: 5px; border: none; border-radius: 8px; background-color: #e74c3c; color: white; font-size: 15px; cursor: pointer; }
-        .speed-control { margin-top: 20px; }
-        .script-area { background-color: #34495e; padding: 15px; border-radius: 8px; height: 280px; overflow-y: auto; margin-bottom: 20px; }
-        .script-line { margin: 10px 0; line-height: 1.8; font-size: 15px; }
-        .script-line.current { color: #3498db; font-weight: bold; }
-        .script-line.past { color: #95a5a6; }
-        .footer { text-align: center; color: #bdc3c7; font-size: 13px; margin-top: 10px; }
-        .status-tip { color: #f1c40f; margin: 8px 0; font-size: 14px; text-align: center; }
-        .wake-btn { background-color: #9b59b6; }
-        .note { background-color: #1e2b38; padding: 10px; border-radius: 6px; margin-bottom: 15px; color: #bdc3c7; font-size: 13px; }
+        .number-select p { font-size: 18px; margin-bottom: 12px; opacity: 0.9; }
+        .number-btn { 
+            padding: 16px 20px; margin: 6px; border: none; border-radius: 50px; 
+            background-color: #2c3e50; color: white; font-size: 18px; font-weight: bold; 
+            cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); min-width: 90px; 
+            border: 1px solid #3d566e; transition: all 0.1s;
+        }
+        .number-btn.active { background-color: #27ae60; border-color: #2ecc71; transform: scale(0.97); }
+        .number-btn:active { background-color: #1e2b38; }
+        .control-area { text-align: center; margin-bottom: 20px; }
+        .control-btn { 
+            padding: 14px 18px; margin: 5px; border: none; border-radius: 40px; 
+            background-color: #c0392b; color: white; font-size: 18px; font-weight: bold; 
+            cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); min-width: 85px; 
+            border: 1px solid #e74c3c; transition: all 0.1s;
+        }
+        .control-btn:active { background-color: #962d22; transform: scale(0.96); }
+        .speed-control { margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .script-area { 
+            background-color: #1e2b38; padding: 20px 16px; border-radius: 24px; 
+            min-height: 320px; max-height: 50vh; overflow-y: auto; margin: 15px 0 20px; 
+            border: 1px solid #3d566e; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .script-line { 
+            margin: 18px 0; line-height: 1.6; font-size: 20px; padding: 8px 12px; 
+            border-radius: 16px; transition: background 0.2s;
+        }
+        .script-line.current { 
+            color: #f1c40f; font-weight: bold; background-color: #2c3e50; 
+            border-left: 6px solid #f1c40f; padding-left: 18px;
+        }
+        .script-line.past { color: #7f8c8d; text-decoration: line-through 1px rgba(127,140,141,0.5); }
+        .footer { text-align: center; color: #95a5a6; font-size: 15px; margin-top: auto; padding: 15px 0 5px; }
+        .status-badge { 
+            display: inline-block; background: #27ae60; color: white; padding: 6px 18px; 
+            border-radius: 30px; font-size: 16px; margin-bottom: 12px;
+        }
+        .audio-status { margin-top: 10px; font-size: 14px; opacity: 0.9; min-height: 24px; }
+        @media (min-width: 768px) {
+            .title { font-size: 36px; }
+            .script-line { font-size: 22px; }
+            .number-btn { padding: 18px 28px; font-size: 20px; }
+            .control-btn { padding: 16px 24px; font-size: 20px; }
+        }
     </style>
 </head>
 <body>
-    <h1 class="title">🎭 阿瓦隆上帝语音播报</h1>
+    <h1 class="title">🎭 阿瓦隆 · 神之眼</h1>
     <div class="container">
-        <div class="note">
-            <strong>📱 华为手机使用提示：</strong><br>
-            1. 点击地址栏锁图标 → 允许「声音」权限<br>
-            2. 首次使用请点击下方「唤醒语音」按钮激活引擎
-        </div>
-
         <div class="number-select">
-            <p>请选择游戏人数：</p>
+            <p>👥 选择游戏人数</p>
             <button class="number-btn" data-number="5">5人局</button>
             <button class="number-btn" data-number="7">7人局</button>
             <button class="number-btn" data-number="8">8人局</button>
@@ -43,30 +76,26 @@
         </div>
 
         <div class="control-area" style="display: none;">
+            <div style="margin-bottom: 8px;">
+                <span class="status-badge" id="progressBadge">第1 / 7句</span>
+            </div>
             <div>
                 <button class="control-btn" id="prevBtn">⏮ 上一句</button>
                 <button class="control-btn" id="playBtn">▶ 播放</button>
-                <button class="control-btn" id="restartBtn">🔄 重播</button>
                 <button class="control-btn" id="nextBtn">⏭ 下一句</button>
             </div>
-            <div class="speed-control">
-                <label>语速：</label>
-                <input type="range" id="speedSlider" min="0.8" max="1.5" step="0.1" value="1.0">
-                <span id="speedText">1.0倍</span>
+            <div style="margin-top: 16px;">
+                <button class="control-btn" id="restartBtn">🔄 从头开始</button>
             </div>
-            <div>
-                <button class="control-btn wake-btn" id="wakeVoiceBtn">🔊 唤醒语音引擎</button>
-                <button class="control-btn test-btn" id="testVoiceBtn">🎵 测试语音</button>
-            </div>
-            <div id="voiceStatus" class="status-tip">⏳ 语音引擎加载中...</div>
+            <div class="audio-status" id="audioStatus">🎵 音频系统就绪</div>
         </div>
 
         <div class="script-area" id="scriptArea">
-            <p class="script-line">请先选择游戏人数，将自动加载对应播报脚本...</p>
+            <p class="script-line">✨ 请先选择游戏人数，台词将自动加载</p>
         </div>
 
         <div class="footer">
-            <p>点击「唤醒语音」后再播放 | 华为浏览器已适配</p>
+            <p>📱 适配手机/平板 · 键盘左右键切换 · 空格键播放/暂停</p>
         </div>
     </div>
 
@@ -76,136 +105,147 @@
             const numberBtns = document.querySelectorAll('.number-btn');
             const controlArea = document.querySelector('.control-area');
             const scriptArea = document.getElementById('scriptArea');
-            const playBtn = document.getElementById('playBtn');
-            const restartBtn = document.getElementById('restartBtn');
-            const nextBtn = document.getElementById('nextBtn');
             const prevBtn = document.getElementById('prevBtn');
-            const speedSlider = document.getElementById('speedSlider');
-            const speedText = document.getElementById('speedText');
-            const testVoiceBtn = document.getElementById('testVoiceBtn');
-            const wakeVoiceBtn = document.getElementById('wakeVoiceBtn');
-            const voiceStatus = document.getElementById('voiceStatus');
+            const playBtn = document.getElementById('playBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            const progressBadge = document.getElementById('progressBadge');
+            const audioStatus = document.getElementById('audioStatus');
 
             // ---------- 全局变量 ----------
-            let currentSpeed = parseFloat(speedSlider.value);
-            let currentScript = [];
-            let currentIndex = 0;
-            let audio = null;
-            let isPlaying = false;
-            let speechSupported = 'speechSynthesis' in window;
-            let voiceReady = false;
+            let currentScript = [];          // 当前人数的台词数组
+            let currentIndex = 0;            // 当前播放索引
+            let currentNumber = 5;           // 当前选中的人数（默认5，实际选择后会更新）
+            let audio = new Audio();         // 全局音频对象
+            let isPlaying = false;           // 播放状态
 
-            // 状态提示更新
-            function setStatus(text, isGood = true) {
-                voiceStatus.textContent = text;
-                voiceStatus.style.color = isGood ? '#2ecc71' : '#f1c40f';
-            }
-
-            // 检查语音支持
-            if (!speechSupported) {
-                setStatus('❌ 浏览器不支持语音播报，请更换浏览器', false);
-            } else {
-                // 预加载语音列表（华为浏览器需要主动且多次调用）
-                function loadVoices() {
-                    speechSynthesis.getVoices();
-                    // 华为浏览器 onvoiceschanged 可能不触发，用定时器轮询
-                    let attempts = 0;
-                    const checkInterval = setInterval(() => {
-                        const voices = speechSynthesis.getVoices();
-                        if (voices.length > 0 || attempts > 5) {
-                            clearInterval(checkInterval);
-                            voiceReady = true;
-                            setStatus('✅ 语音引擎就绪，可正常使用');
-                        }
-                        attempts++;
-                    }, 300);
-                }
-                loadVoices();
-                // 同时也监听标准事件
-                speechSynthesis.onvoiceschanged = () => {
-                    voiceReady = true;
-                    setStatus('✅ 语音引擎就绪，可正常使用');
-                };
-            }
-
-            // 强制唤醒语音引擎（针对华为浏览器）
-            function forceWakeVoice() {
-                if (!speechSupported) return;
-                setStatus('🔄 正在唤醒语音引擎...');
-                // 发送一个无声的短语音来激活引擎
-                const wakeUtter = new SpeechSynthesisUtterance('');
-                wakeUtter.volume = 0;
-                wakeUtter.rate = 1;
-                wakeUtter.onend = () => {
-                    setStatus('✅ 语音引擎已唤醒');
-                    voiceReady = true;
-                };
-                wakeUtter.onerror = () => {
-                    setStatus('⚠️ 唤醒失败，请检查浏览器声音权限', false);
-                };
-                speechSynthesis.cancel();
-                speechSynthesis.speak(wakeUtter);
-            }
-
-            // 测试语音
-            function testVoice() {
-                if (!speechSupported) return;
-                const testUtter = new SpeechSynthesisUtterance('测试语音，如果你听到这句话，说明语音功能正常。');
-                testUtter.lang = 'zh-CN';
-                testUtter.rate = 1.0;
-                testUtter.onstart = () => setStatus('🔊 正在测试...');
-                testUtter.onend = () => setStatus('✅ 测试通过！可以正常播报');
-                testUtter.onerror = (e) => {
-                    setStatus(`❌ 测试失败: ${e.error}，请尝试点击「唤醒语音」`, false);
-                };
-                speechSynthesis.cancel();
-                speechSynthesis.speak(testUtter);
-            }
-
-            wakeVoiceBtn.addEventListener('click', forceWakeVoice);
-            testVoiceBtn.addEventListener('click', testVoice);
-
-            // ---------- 台词库 ----------
+            // ---------- 台词库（与你的音频内容严格对应）----------
             const scripts = {
                 5: [
-                    "【通用开场】各位玩家，身份卡牌已悉数分发，请确认自己的身份，游戏即将开始。",
-                    "本局为5人标准局",
-                    "现在，请所有玩家闭眼。",
-                    "【停顿2秒】请莫甘娜、刺客睁眼。请莫甘娜、刺客睁眼。互认同伴身份。互认同伴身份。请莫甘娜、刺客闭眼。请莫甘娜、刺客闭眼。",
-                    "【停顿2秒】请梅林睁眼。莫甘娜、刺客请比大拇指。莫甘娜、刺客请比大拇指。梅林确认身份，莫甘娜、刺客收大拇指。请梅林闭眼。请梅林闭眼。",
-                    "【停顿2秒】请派西维尔睁眼。莫甘娜、梅林请比大拇指。莫甘娜、梅林请比大拇指。派西维尔确认身份。莫甘娜、梅林收大拇指。请派西维尔闭眼。请派西维尔闭眼。",
-                    "【停顿2秒】所有人调整面部表情，3、2、1，请各位玩家睁眼。"
+                    "🌙 各位玩家，身份卡牌已分发，请确认身份，游戏即将开始。",
+                    "📜 本局为5人标准局",
+                    "😴 现在，请所有玩家闭眼。",
+                    "👹 请莫甘娜、刺客睁眼，互认同伴身份。",
+                    "🧙 请梅林睁眼，莫甘娜、刺客竖起拇指。",
+                    "🛡️ 请派西维尔睁眼，莫甘娜、梅林竖起拇指。",
+                    "☀️ 所有人调整表情，3、2、1，睁眼。"
                 ],
                 7: [
-                    "【通用开场】各位玩家，身份卡牌已悉数分发，请确认自己的身份，游戏即将开始。",
-                    "本局为7人标准局，",
-                    "现在，请所有玩家闭眼。",
-                    "【停顿2秒】请莫甘娜、刺客睁眼。请莫甘娜、刺客睁眼。互认同伴身份。互认同伴身份。请莫甘娜、刺客闭眼。请莫甘娜、刺客闭眼。",
-                    "【停顿2秒】请梅林睁眼。莫甘娜、刺客、奥伯伦请比大拇指。莫甘娜、刺客、奥伯伦请比大拇指。梅林确认身份，莫甘娜、刺客、奥伯伦收大拇指。请梅林闭眼。请梅林闭眼。",
-                    "【停顿2秒】请派西维尔睁眼。莫甘娜、梅林请比大拇指。莫甘娜、梅林请比大拇指。派西维尔确认身份。莫甘娜、梅林收大拇指。请派西维尔闭眼。请派西维尔闭眼。",
-                    "【停顿2秒】所有人调整面部表情，3、2、1，请各位玩家睁眼。"
+                    "🌙 各位玩家，身份卡牌已分发，请确认身份，游戏即将开始。",
+                    "📜 本局为7人标准局",
+                    "😴 现在，请所有玩家闭眼。",
+                    "👹 请莫甘娜、刺客睁眼，互认同伴身份。",
+                    "🧙 请梅林睁眼，莫甘娜、刺客、奥伯伦竖起拇指。",
+                    "🛡️ 请派西维尔睁眼，莫甘娜、梅林竖起拇指。",
+                    "☀️ 所有人调整表情，3、2、1，睁眼。"
                 ],
                 8: [
-                    "【通用开场】各位玩家，身份卡牌已悉数分发，请确认自己的身份，游戏即将开始。",
-                    "本局为8人标准局，",
-                    "现在，请所有玩家闭眼。",
-                    "【停顿2秒】请莫甘娜、刺客、莫德雷德睁眼。请莫甘娜、刺客、莫德雷德睁眼。互认同伴身份。互认同伴身份。请莫甘娜、刺客、莫德雷德闭眼。请莫甘娜、刺客、莫德雷德闭眼。",
-                    "【停顿2秒】请梅林睁眼。莫甘娜、刺客请比大拇指。莫甘娜、刺客请比大拇指。梅林确认身份，莫甘娜、刺客、收大拇指。请梅林闭眼。请梅林闭眼。",
-                    "【停顿2秒】请派西维尔睁眼。莫甘娜、梅林请比大拇指。莫甘娜、梅林请比大拇指。派西维尔确认身份。莫甘娜、梅林收大拇指。请派西维尔闭眼。请派西维尔闭眼。",
-                    "【停顿2秒】所有人调整面部表情，3、2、1，请各位玩家睁眼。"
+                    "🌙 各位玩家，身份卡牌已分发，请确认身份，游戏即将开始。",
+                    "📜 本局为8人标准局",
+                    "😴 现在，请所有玩家闭眼。",
+                    "👹 请莫甘娜、刺客、莫德雷德睁眼，互认同伴身份。",
+                    "🧙 请梅林睁眼，莫甘娜、刺客竖起拇指。",
+                    "🛡️ 请派西维尔睁眼，莫甘娜、梅林竖起拇指。",
+                    "☀️ 所有人调整表情，3、2、1，睁眼。"
                 ],
                 10: [
-                    "【通用开场】各位玩家，身份卡牌已悉数分发，请确认自己的身份，游戏即将开始。",
-                    "本局为10人标准局，",
-                    "现在，请所有玩家闭眼。",
-                    "【停顿2秒】请莫甘娜、刺客、莫德雷德睁眼。请莫甘娜、刺客、莫德雷德睁眼。互认同伴身份。互认同伴身份。请莫甘娜、刺客、莫德雷德闭眼。请莫甘娜、刺客、莫德雷德闭眼。",
-                    "【停顿2秒】请梅林睁眼。莫甘娜、刺客、奥伯伦请比大拇指。莫甘娜、刺客、奥伯伦请比大拇指。梅林确认身份。莫甘娜、刺客、奥伯伦收大拇指。请梅林闭眼。请梅林闭眼。",
-                    "【停顿2秒】请派西维尔睁眼。莫甘娜、梅林请比大拇指。莫甘娜、梅林请比大拇指。派西维尔确认身份。莫甘娜、梅林收大拇指。请派西维尔闭眼。请派西维尔闭眼。",
-                    "【停顿2秒】所有人调整面部表情，3、2、1，请各位玩家睁眼。"
+                    "🌙 各位玩家，身份卡牌已分发，请确认身份，游戏即将开始。",
+                    "📜 本局为10人标准局",
+                    "😴 现在，请所有玩家闭眼。",
+                    "👹 请莫甘娜、刺客、莫德雷德睁眼，互认同伴身份。",
+                    "🧙 请梅林睁眼，莫甘娜、刺客、奥伯伦竖起拇指。",
+                    "🛡️ 请派西维尔睁眼，莫甘娜、梅林竖起拇指。",
+                    "☀️ 所有人调整表情，3、2、1，睁眼。"
                 ]
             };
 
-            // 渲染
+            // ---------- 音频路径生成（严格按照 audio/人数/索引.mp3）----------
+            function getAudioPath(number, index) {
+                return `audio/${number}/${index}.mp3`;
+            }
+
+            // 预加载下一句音频（提升流畅度）
+            function preloadNextAudio() {
+                const nextIndex = currentIndex + 1;
+                if (nextIndex < currentScript.length) {
+                    const preAudio = new Audio();
+                    preAudio.src = getAudioPath(currentNumber, nextIndex);
+                }
+            }
+
+            // 停止当前音频并重置
+            function stopAudio() {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+
+            // 播放当前索引的音频
+            function playCurrentAudio() {
+                if (currentScript.length === 0) return;
+
+                // 先停止之前可能正在播放的音频
+                stopAudio();
+
+                const path = getAudioPath(currentNumber, currentIndex);
+                audio.src = path;
+
+                // 播放
+                audio.play().then(() => {
+                    isPlaying = true;
+                    playBtn.textContent = '⏸ 暂停';
+                    audioStatus.textContent = '🔊 正在播报...';
+                    preloadNextAudio(); // 预加载下一句
+                }).catch(err => {
+                    console.warn('音频播放失败:', err);
+                    audioStatus.textContent = '⚠️ 音频加载失败，请检查文件是否存在';
+                    isPlaying = false;
+                    playBtn.textContent = '▶ 播放';
+                });
+
+                // 播放结束后的行为
+                audio.onended = () => {
+                    if (currentIndex < currentScript.length - 1) {
+                        // 自动播放下一句
+                        goToIndex(currentIndex + 1, true);
+                    } else {
+                        // 全部播完，回到开头但不自动播放
+                        isPlaying = false;
+                        playBtn.textContent = '▶ 播放';
+                        audioStatus.textContent = '✅ 播报完毕';
+                        currentIndex = 0;
+                        renderScript();
+                    }
+                };
+
+                audio.onerror = () => {
+                    audioStatus.textContent = `❌ 音频文件缺失：audio/${currentNumber}/${currentIndex}.mp3`;
+                    isPlaying = false;
+                    playBtn.textContent = '▶ 播放';
+                };
+            }
+
+            // 切换索引
+            function goToIndex(newIndex, autoPlay = false) {
+                if (currentScript.length === 0) return;
+                
+                // 边界循环处理
+                currentIndex = (newIndex + currentScript.length) % currentScript.length;
+                renderScript();
+
+                if (autoPlay) {
+                    playCurrentAudio();
+                } else {
+                    // 如果之前是播放状态，切换后继续播放新句（保持连贯）
+                    if (isPlaying) {
+                        playCurrentAudio();
+                    } else {
+                        // 暂停状态仅更新界面
+                        playBtn.textContent = '▶ 播放';
+                    }
+                }
+            }
+
+            // 渲染台词区域
             function renderScript() {
                 scriptArea.innerHTML = '';
                 currentScript.forEach((line, index) => {
@@ -214,152 +254,111 @@
                     div.textContent = line;
                     scriptArea.appendChild(div);
                 });
-                scriptArea.scrollTop = scriptArea.scrollHeight;
+                // 自动滚动到当前高亮行
+                const currentEl = document.querySelector('.script-line.current');
+                if (currentEl) currentEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                updateProgress();
             }
 
-            // 播放核心
-            function playCurrentLine(retryCount = 0) {
-                if (!speechSupported) return;
-                if (currentIndex >= currentScript.length) currentIndex = 0;
-                const rawText = currentScript[currentIndex];
-                const cleanText = rawText.replace(/【.*?】/g, '').trim();
-                if (!cleanText) {
-                    currentIndex = (currentIndex + 1) % currentScript.length;
-                    renderScript();
-                    playCurrentLine();
-                    return;
+            // 更新进度显示
+            function updateProgress() {
+                if (currentScript.length > 0) {
+                    progressBadge.textContent = `第${currentIndex + 1} / ${currentScript.length}句`;
                 }
-
-                // 华为浏览器必须每次播放前cancel
-                speechSynthesis.cancel();
-
-                audio = new SpeechSynthesisUtterance(cleanText);
-                audio.lang = 'zh-CN';
-                audio.rate = currentSpeed;
-
-                audio.onstart = () => {
-                    isPlaying = true;
-                    playBtn.textContent = '⏸ 暂停';
-                    setStatus('🔊 正在播报...');
-                };
-
-                audio.onend = () => {
-                    currentIndex += 1;
-                    renderScript();
-                    if (currentIndex < currentScript.length) {
-                        playCurrentLine();
-                    } else {
-                        playBtn.textContent = '▶ 播放';
-                        audio = null;
-                        isPlaying = false;
-                        currentIndex = 0;
-                        renderScript();
-                        setStatus('✅ 播报完毕');
-                    }
-                };
-
-                audio.onerror = (e) => {
-                    if (e.error === 'canceled' || e.error === 'interrupted') return;
-                    
-                    if (retryCount === 0) {
-                        setStatus(`⚠️ 出错，正在重试... (${e.error})`, false);
-                        setTimeout(() => playCurrentLine(1), 300);
-                        return;
-                    }
-                    
-                    setStatus(`❌ 语音失败: ${e.error}，请点击「唤醒语音」`, false);
-                    playBtn.textContent = '▶ 播放';
-                    audio = null;
-                    isPlaying = false;
-                };
-
-                speechSynthesis.speak(audio);
             }
 
-            // 事件绑定
+            // 重置为初始状态（切换人数时使用）
+            function resetForNewNumber(number) {
+                stopAudio();
+                isPlaying = false;
+                playBtn.textContent = '▶ 播放';
+                currentNumber = number;
+                currentScript = scripts[number] || [];
+                currentIndex = 0;
+                controlArea.style.display = 'block';
+                renderScript();
+                audioStatus.textContent = '🎵 音频就绪';
+            }
+
+            // ---------- 事件绑定 ----------
+
+            // 1. 选择人数
             numberBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const confirmSwitch = confirm(`确认切换到${btn.dataset.number}人局吗？`);
-                    if (!confirmSwitch) return;
+                    const num = parseInt(btn.dataset.number);
+                    const confirmMsg = `确认切换到 ${num} 人局吗？当前进度将重置。`;
+                    if (!confirm(confirmMsg)) return;
+
+                    // 高亮处理
                     numberBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    speechSynthesis.cancel();
-                    audio = null;
-                    isPlaying = false;
-                    playBtn.textContent = '▶ 播放';
-                    currentScript = scripts[parseInt(btn.dataset.number)] || [];
-                    currentIndex = 0;
-                    controlArea.style.display = 'block';
-                    renderScript();
-                    speechSynthesis.getVoices();
-                    setStatus('✅ 脚本已加载');
+
+                    resetForNewNumber(num);
                 });
             });
 
+            // 2. 播放 / 暂停
             playBtn.addEventListener('click', () => {
                 if (currentScript.length === 0) {
-                    alert('请先选择人数');
+                    alert('请先选择游戏人数');
                     return;
                 }
-                if (!isPlaying) {
-                    playCurrentLine();
-                } else {
-                    speechSynthesis.cancel();
-                    audio = null;
-                    playBtn.textContent = '▶ 播放';
+
+                if (isPlaying) {
+                    // 暂停
+                    audio.pause();
                     isPlaying = false;
-                    setStatus('⏸ 已暂停');
+                    playBtn.textContent = '▶ 播放';
+                    audioStatus.textContent = '⏸ 已暂停';
+                } else {
+                    // 播放
+                    playCurrentAudio();
                 }
             });
 
-            restartBtn.addEventListener('click', () => {
-                if (currentScript.length === 0) return;
-                speechSynthesis.cancel();
-                audio = null;
-                currentIndex = 0;
-                isPlaying = false;
-                renderScript();
-                playCurrentLine();
-            });
-
+            // 3. 下一句
             nextBtn.addEventListener('click', () => {
                 if (currentScript.length === 0) return;
-                const wasPlaying = isPlaying;
-                speechSynthesis.cancel();
-                audio = null;
-                currentIndex = (currentIndex + 1) % currentScript.length;
-                renderScript();
-                if (wasPlaying) {
-                    playCurrentLine();
-                } else {
-                    playBtn.textContent = '▶ 播放';
-                    isPlaying = false;
-                }
+                goToIndex(currentIndex + 1, isPlaying);
             });
 
+            // 4. 上一句
             prevBtn.addEventListener('click', () => {
                 if (currentScript.length === 0) return;
-                const wasPlaying = isPlaying;
-                speechSynthesis.cancel();
-                audio = null;
-                currentIndex = (currentIndex - 1 + currentScript.length) % currentScript.length;
+                goToIndex(currentIndex - 1, isPlaying);
+            });
+
+            // 5. 从头开始
+            restartBtn.addEventListener('click', () => {
+                if (currentScript.length === 0) return;
+                stopAudio();
+                currentIndex = 0;
                 renderScript();
-                if (wasPlaying) {
-                    playCurrentLine();
+                if (isPlaying) {
+                    playCurrentAudio();
                 } else {
                     playBtn.textContent = '▶ 播放';
-                    isPlaying = false;
+                    audioStatus.textContent = '🎵 已回到开头';
                 }
             });
 
-            speedSlider.addEventListener('input', () => {
-                currentSpeed = parseFloat(speedSlider.value);
-                speedText.textContent = currentSpeed.toFixed(1) + '倍';
-                if (audio) audio.playbackRate = currentSpeed;
+            // 6. 键盘快捷键（适合平板接键盘或电脑调试）
+            window.addEventListener('keydown', (e) => {
+                if (currentScript.length === 0) return;
+                if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    goToIndex(currentIndex + 1, isPlaying);
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    goToIndex(currentIndex - 1, isPlaying);
+                } else if (e.key === ' ') {
+                    e.preventDefault();
+                    playBtn.click();
+                }
             });
 
+            // 初始化显示
             renderScript();
-            speedText.textContent = currentSpeed.toFixed(1) + '倍';
         })();
     </script>
 </body>
