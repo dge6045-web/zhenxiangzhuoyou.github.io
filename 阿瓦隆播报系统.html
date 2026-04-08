@@ -7,6 +7,11 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+        /* 安全区域适配 */
+        body {
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
         /* 加载进度条 */
         #loaderBar {
             position: fixed;
@@ -194,11 +199,39 @@
         }
         .audio-status { margin-top: 10px; font-size: 14px; opacity: 0.9; min-height: 24px; text-shadow: 1px 1px 2px black; }
 
+        /* 横屏提示 Toast */
+        .landscape-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 9999;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.2);
+            white-space: nowrap;
+            animation: fadeInOut 3s ease forwards;
+            pointer-events: none;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        }
+
         /* ========== 版图页 ========== */
         #gameBoardPage {
             position: relative;
             overflow: hidden;
             background-color: #0f172a;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
         .cinema-screen {
@@ -468,13 +501,24 @@
                 10:[3,4,4,5,5]
             };
 
-            // 固定失败标记配置
             const fixedFailConfig = {
-                7: [3],      // 索引3（第4个图标）显示❌❌
-                8: [3, 4]    // 索引3和4（第4、5个图标）显示❌❌
+                7: [3],
+                8: [3, 4]
             };
 
             let taskStates = [0,0,0,0,0];
+
+            // ---------- 横屏提示（只显示一次）----------
+            const TOAST_SHOWN_KEY = 'avalon_landscape_tip_shown';
+            function showLandscapeTip() {
+                if (localStorage.getItem(TOAST_SHOWN_KEY)) return;
+                const toast = document.createElement('div');
+                toast.className = 'landscape-toast';
+                toast.textContent = '📱 建议将手机横屏以获得最佳体验';
+                document.body.appendChild(toast);
+                localStorage.setItem(TOAST_SHOWN_KEY, 'true');
+                setTimeout(() => toast.remove(), 3000);
+            }
 
             // ---------- 加载进度模拟 ----------
             let loadProgress = 0;
@@ -716,13 +760,11 @@
                     if (state === 1) icon.classList.add('state-success');
                     else if (state === 2) icon.classList.add('state-fail');
                     
-                    // 数字部分
                     const numberSpan = document.createElement('span');
                     numberSpan.className = 'task-number';
                     numberSpan.textContent = numbers[idx];
                     icon.appendChild(numberSpan);
                     
-                    // 固定失败标记
                     if (failIndices.includes(idx)) {
                         const failMark = document.createElement('div');
                         failMark.className = 'fixed-fail-marks';
@@ -741,6 +783,7 @@
             }
 
             function resetTaskStates() {
+                if (!confirm('确定重置本轮所有任务状态吗？')) return;
                 taskStates = [0,0,0,0,0];
                 renderTaskIcons();
             }
@@ -754,6 +797,7 @@
                 } else {
                     gameBoardPage.classList.add('active');
                     renderTaskIcons();
+                    showLandscapeTip();   // 🆕 进入版图页时显示横屏建议
                 }
             }
 
