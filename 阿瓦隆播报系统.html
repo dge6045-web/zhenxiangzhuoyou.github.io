@@ -194,18 +194,33 @@
         }
         .audio-status { margin-top: 10px; font-size: 14px; opacity: 0.9; min-height: 24px; text-shadow: 1px 1px 2px black; }
 
-        /* ========== 版图页：强制横屏布局 ========== */
+        /* ========== 版图页：强制旋转90度 ========== */
         #gameBoardPage {
-            position: relative;
-            background: url('images/board-bg.jpg') no-repeat center center/cover;
-            background-color: #0f172a; /* fallback */
-        }
-        .board-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100vh;      /* 旋转后宽度变为视口高度 */
+            height: 100vw;     /* 旋转后高度变为视口宽度 */
+            transform: rotate(90deg);
+            transform-origin: top left;
+            translate: 0 100%;  /* 将旋转后的容器左上角移至视口左下角，再向上移动自身高度对齐 */
+            margin-top: -100vh; /* 精确对齐顶部 */
+            background: url('images/board-bg.jpg') no-repeat center center/cover;
+            background-color: #0f172a;
+            overflow: hidden;
+            z-index: 50;
+        }
+
+        /* 背景遮罩层也要旋转适配 */
+        .board-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.2);
             z-index: 1;
         }
+
         .board-content {
             position: relative;
             z-index: 5;
@@ -214,19 +229,8 @@
             align-items: center;
             justify-content: center;
             width: 100%;
-            height: 100vh;
+            height: 100%;
             padding: 20px;
-            /* 关键：强制内容按16:9视觉布局，不依赖屏幕方向 */
-        }
-
-        /* 宽银幕内容容器 */
-        .cinema-container {
-            width: 100%;
-            max-width: 1600px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
         .back-btn {
@@ -245,7 +249,7 @@
             z-index: 10;
         }
 
-        /* 任务图标行：强制单行、不换行、不滚动 */
+        /* 图标行 */
         .task-icons-row {
             display: flex;
             flex-direction: row;
@@ -283,18 +287,6 @@
             user-select: none;
         }
 
-        /* 横屏时微调大小 */
-        @media (orientation: landscape) {
-            .task-icon {
-                width: 12vw;
-                max-width: 130px;
-                font-size: clamp(32px, 6vw, 60px);
-            }
-            .task-icons-row {
-                padding: 10px 8%;
-            }
-        }
-
         .task-icon.state-success {
             background: rgba(39, 174, 96, 0.8);
             border-color: #2ecc71;
@@ -321,6 +313,8 @@
             cursor: pointer;
         }
 
+        /* 旋转后，文字方向也需校正？不用，用户本来就是横着看，旋转后文字方向自然就是横向的 */
+
         /* 平板/桌面优化 */
         @media (min-width: 768px) {
             .title { font-size: 32px; }
@@ -341,17 +335,6 @@
             .script-area { min-height: 200px; max-height: 40vh; }
             .number-btn { padding: 10px 12px; }
             .control-btn { padding: 10px 12px; }
-        }
-
-        /* 竖屏时版图页仍保持横排视觉效果，内容不旋转，用户可看到完整五个图标（缩小适应） */
-        @media (orientation: portrait) {
-            .task-icons-row {
-                padding: 10px 2%;
-            }
-            .task-icon {
-                width: 13vw;
-                font-size: 7vw;
-            }
         }
     </style>
 </head>
@@ -428,16 +411,14 @@
         </div>
     </div>
 
-    <!-- ========== 版图页：强制横屏布局 ========== -->
+    <!-- ========== 版图页：强制旋转90度 ========== -->
     <div id="gameBoardPage" class="page">
         <div class="board-overlay"></div>
         <button class="back-btn" id="backToNarratorBtn">← 返回主持</button>
         <div class="board-content">
-            <div class="cinema-container">
-                <div class="task-icons-row" id="taskIconsContainer"></div>
-                <div class="board-actions">
-                    <button class="board-btn" id="resetRoundBtn">🔄 重置本轮</button>
-                </div>
+            <div class="task-icons-row" id="taskIconsContainer"></div>
+            <div class="board-actions">
+                <button class="board-btn" id="resetRoundBtn">🔄 重置本轮</button>
             </div>
         </div>
     </div>
