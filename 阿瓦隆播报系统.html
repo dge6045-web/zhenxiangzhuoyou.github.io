@@ -7,6 +7,19 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+        /* 加载进度条 */
+        #loaderBar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: #f1c40f;
+            z-index: 9999;
+            transition: width 0.2s;
+            box-shadow: 0 0 10px #f1c40f;
+        }
+
         /* 背景层容器 */
         #bgContainer {
             position: fixed;
@@ -19,10 +32,9 @@
             object-fit: cover;
             transition: opacity 0.5s ease-in-out;
         }
-        #bgDay { opacity: 1; }   /* 默认白天显示 */
+        #bgDay { opacity: 1; }
         #bgNight { opacity: 0; }
 
-        /* 半透明遮罩层，保证文字可读性 */
         .overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -39,7 +51,6 @@
             flex-direction: column;
         }
 
-        /* 标题区域：Logo + 文字 */
         .header {
             display: flex;
             align-items: center;
@@ -63,7 +74,6 @@
 
         .container { max-width: 700px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; position: relative; z-index: 2; }
 
-        /* 人数选择区域 */
         .number-select { text-align: center; margin-bottom: 25px; }
         .number-select p { font-size: 18px; margin-bottom: 12px; text-shadow: 1px 1px 3px black; }
         .number-grid {
@@ -74,23 +84,14 @@
             margin: 0 auto;
         }
         .number-btn { 
-            padding: 16px 12px; 
-            border: none; 
-            border-radius: 50px; 
-            background: rgba(44, 62, 80, 0.8); 
-            backdrop-filter: blur(8px);
-            color: white; 
-            font-size: 18px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
-            border: 1px solid rgba(255,255,255,0.2); 
-            transition: all 0.2s;
-            text-align: center;
+            padding: 16px 12px; border: none; border-radius: 50px; 
+            background: rgba(44, 62, 80, 0.8); backdrop-filter: blur(8px);
+            color: white; font-size: 18px; font-weight: bold; 
+            cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
+            border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s;
         }
         .number-btn.active { background: #27ae60; border-color: #2ecc71; transform: scale(0.97); }
 
-        /* 控制区域 */
         .control-area { text-align: center; margin-bottom: 20px; }
         .control-grid {
             display: grid;
@@ -100,67 +101,49 @@
             margin: 0 auto;
         }
         .control-btn { 
-            padding: 14px 12px; 
-            border: none; 
-            border-radius: 40px; 
-            background: rgba(192, 57, 43, 0.85); 
-            backdrop-filter: blur(8px);
-            color: white; 
-            font-size: 18px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
-            border: 1px solid rgba(255,255,255,0.2); 
-            transition: all 0.2s;
-            text-align: center;
-            white-space: nowrap;
-        }
-        /* 移动端如果屏幕太小，允许“从头开始”换行 */
-        @media (max-width: 400px) {
-            .control-btn { white-space: normal; line-height: 1.2; }
+            padding: 14px 12px; border: none; border-radius: 40px; 
+            background: rgba(192, 57, 43, 0.85); backdrop-filter: blur(8px);
+            color: white; font-size: 18px; font-weight: bold; 
+            cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
+            border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s;
         }
 
         .script-area { 
-            background: rgba(30, 43, 56, 0.75); 
-            backdrop-filter: blur(12px);
-            padding: 20px 16px; 
-            border-radius: 24px; 
-            min-height: 320px; 
-            max-height: 50vh; 
-            overflow-y: auto; 
+            background: rgba(30, 43, 56, 0.75); backdrop-filter: blur(12px);
+            padding: 20px 16px; border-radius: 24px; 
+            min-height: 320px; max-height: 50vh; overflow-y: auto; 
             margin: 15px 0 20px; 
             border: 1px solid rgba(255,255,255,0.15);
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
         .script-line { 
-            margin: 18px 0; 
-            line-height: 1.6; 
-            font-size: 20px; 
-            padding: 8px 12px; 
-            border-radius: 16px; 
-            transition: all 0.2s; 
+            margin: 18px 0; line-height: 1.6; font-size: 20px; 
+            padding: 8px 12px; border-radius: 16px; 
             text-shadow: 1px 1px 4px black;
         }
         .script-line.current { 
-            color: #f1c40f; 
-            font-weight: bold; 
+            color: #f1c40f; font-weight: bold; 
             background: rgba(44, 62, 80, 0.7); 
-            border-left: 6px solid #f1c40f; 
-            padding-left: 18px;
+            border-left: 6px solid #f1c40f; padding-left: 18px;
         }
         .script-line.past { color: #b0bec5; text-decoration: line-through 1px rgba(176,190,197,0.5); }
         .footer { text-align: center; color: #ddd; font-size: 14px; margin-top: auto; padding: 15px 0 5px; text-shadow: 1px 1px 3px black; }
         .status-badge { 
-            display: inline-block; 
-            background: #27ae60; 
-            color: white; 
-            padding: 6px 18px; 
-            border-radius: 30px; 
-            font-size: 16px; 
-            margin-bottom: 12px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: inline-block; background: #27ae60; color: white; 
+            padding: 6px 18px; border-radius: 30px; font-size: 16px; 
+            margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .audio-status { margin-top: 10px; font-size: 14px; opacity: 0.9; min-height: 24px; text-shadow: 1px 1px 2px black; }
+
+        /* 横屏模式优化 */
+        @media (orientation: landscape) {
+            body { padding: 8px; }
+            .header { margin: 5px 0 10px; }
+            .script-area { min-height: 200px; max-height: 40vh; }
+            .number-btn { padding: 10px 12px; }
+            .control-btn { padding: 10px 12px; }
+            .container { max-width: 90%; }
+        }
 
         /* 平板适配 */
         @media (min-width: 768px) {
@@ -174,16 +157,28 @@
 </head>
 <body>
 
-    <!-- 背景容器 -->
+    <!-- 加载进度条 -->
+    <div id="loaderBar"></div>
+
+    <!-- 背景容器（WebP自适应） -->
     <div id="bgContainer">
-        <img id="bgDay" class="bg-layer" src="images/bg-day.jpg" alt="白天背景" onerror="this.style.opacity=0;document.body.style.background='linear-gradient(145deg, #87CEEB, #f0e68c)';">
-        <img id="bgNight" class="bg-layer" src="images/bg-night.jpg" alt="黑夜背景" onerror="this.style.opacity=0;document.body.style.background='linear-gradient(145deg, #0f172a, #1a2f4e)';">
+        <picture>
+            <source srcset="images/bg-day.webp" type="image/webp">
+            <img id="bgDay" class="bg-layer" src="images/bg-day.jpg" alt="白天背景" onerror="this.style.opacity=0;document.body.style.background='linear-gradient(145deg, #87CEEB, #f0e68c)';">
+        </picture>
+        <picture>
+            <source srcset="images/bg-night.webp" type="image/webp">
+            <img id="bgNight" class="bg-layer" src="images/bg-night.jpg" alt="黑夜背景" onerror="this.style.opacity=0;document.body.style.background='linear-gradient(145deg, #0f172a, #1a2f4e)';">
+        </picture>
     </div>
     <div class="overlay"></div>
 
-    <!-- 标题栏 -->
+    <!-- 标题栏（Logo WebP自适应） -->
     <div class="header">
-        <img id="siteLogo" src="images/logo.png" alt="真香桌游Logo" onerror="this.style.display='none'">
+        <picture>
+            <source srcset="images/logo.webp" type="image/webp">
+            <img id="siteLogo" src="images/logo.png" alt="真香桌游Logo" onerror="this.style.display='none'">
+        </picture>
         <h1 class="title">真香桌游·阿瓦隆</h1>
     </div>
 
@@ -222,7 +217,7 @@
 
     <script>
         (function() {
-            // ---------- DOM 元素 ----------
+            // ---------- DOM ----------
             const numberBtns = document.querySelectorAll('.number-btn');
             const controlArea = document.querySelector('.control-area');
             const scriptArea = document.getElementById('scriptArea');
@@ -232,8 +227,8 @@
             const restartBtn = document.getElementById('restartBtn');
             const progressBadge = document.getElementById('progressBadge');
             const audioStatus = document.getElementById('audioStatus');
+            const loaderBar = document.getElementById('loaderBar');
 
-            // 背景元素
             const bgDay = document.getElementById('bgDay');
             const bgNight = document.getElementById('bgNight');
 
@@ -243,76 +238,79 @@
             let currentNumber = 5;
             let audio = new Audio();
             let isPlaying = false;
+            let wakeLock = null;
+            const preloadCache = new Map();
 
-            // ---------- 背景切换函数（淡入淡出）----------
-            function switchToNight() {
-                bgDay.style.opacity = '0';
-                bgNight.style.opacity = '1';
+            // ---------- 加载进度模拟 ----------
+            let loadProgress = 0;
+            const progressInterval = setInterval(() => {
+                if (loadProgress < 90) {
+                    loadProgress += 10;
+                    loaderBar.style.width = loadProgress + '%';
+                }
+            }, 100);
+            window.addEventListener('load', () => {
+                loadProgress = 100;
+                loaderBar.style.width = '100%';
+                setTimeout(() => loaderBar.style.opacity = '0', 300);
+                clearInterval(progressInterval);
+            });
+
+            // ---------- 屏幕常亮 (Wake Lock) ----------
+            async function requestWakeLock() {
+                if ('wakeLock' in navigator) {
+                    try {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        wakeLock.addEventListener('release', () => console.log('Wake Lock released'));
+                    } catch (err) {
+                        console.warn('Wake Lock error:', err);
+                    }
+                }
             }
-            function switchToDay() {
-                bgDay.style.opacity = '1';
-                bgNight.style.opacity = '0';
+            async function releaseWakeLock() {
+                if (wakeLock) {
+                    await wakeLock.release();
+                    wakeLock = null;
+                }
             }
-            function resetToDay() {
-                switchToDay();
-            }
+
+            // ---------- 背景切换 ----------
+            function switchToNight() { bgDay.style.opacity = '0'; bgNight.style.opacity = '1'; }
+            function switchToDay() { bgDay.style.opacity = '1'; bgNight.style.opacity = '0'; }
+            function resetToDay() { switchToDay(); }
 
             // ---------- 台词库 ----------
             const scripts = {
-                5: [
-                    "🌙 各位玩家，身份卡牌已分发，请确认身份，游戏即将开始。",
-                    "📜 本局为5人标准局",
-                    "😴 现在，请所有玩家闭眼。",
-                    "👹 请莫甘娜、刺客睁眼，互认同伴身份。",
-                    "🧙 请梅林睁眼，莫甘娜、刺客竖起拇指。",
-                    "🛡️ 请派西维尔睁眼，莫甘娜、梅林竖起拇指。",
-                    "☀️ 所有人调整表情，3、2、1，睁眼。"
-                ],
-                7: [
-                    "🌙 各位玩家，身份卡牌已分发，请确认身份，游戏即将开始。",
-                    "📜 本局为7人标准局",
-                    "😴 现在，请所有玩家闭眼。",
-                    "👹 请莫甘娜、刺客睁眼，互认同伴身份。",
-                    "🧙 请梅林睁眼，莫甘娜、刺客、奥伯伦竖起拇指。",
-                    "🛡️ 请派西维尔睁眼，莫甘娜、梅林竖起拇指。",
-                    "☀️ 所有人调整表情，3、2、1，睁眼。"
-                ],
-                8: [
-                    "🌙 各位玩家，身份卡牌已分发，请确认身份，游戏即将开始。",
-                    "📜 本局为8人标准局",
-                    "😴 现在，请所有玩家闭眼。",
-                    "👹 请莫甘娜、刺客、莫德雷德睁眼，互认同伴身份。",
-                    "🧙 请梅林睁眼，莫甘娜、刺客竖起拇指。",
-                    "🛡️ 请派西维尔睁眼，莫甘娜、梅林竖起拇指。",
-                    "☀️ 所有人调整表情，3、2、1，睁眼。"
-                ],
-                10: [
-                    "🌙 各位玩家，身份卡牌已分发，请确认身份，游戏即将开始。",
-                    "📜 本局为10人标准局",
-                    "😴 现在，请所有玩家闭眼。",
-                    "👹 请莫甘娜、刺客、莫德雷德睁眼，互认同伴身份。",
-                    "🧙 请梅林睁眼，莫甘娜、刺客、奥伯伦竖起拇指。",
-                    "🛡️ 请派西维尔睁眼，莫甘娜、梅林竖起拇指。",
-                    "☀️ 所有人调整表情，3、2、1，睁眼。"
-                ]
+                5: ["🌙 各位玩家，身份卡牌已分发...","📜 本局为5人标准局","😴 现在，请所有玩家闭眼。","👹 请莫甘娜、刺客睁眼...","🧙 请梅林睁眼...","🛡️ 请派西维尔睁眼...","☀️ 所有人调整表情，3、2、1，睁眼。"],
+                7: ["🌙 各位玩家...","📜 本局为7人标准局","😴 现在，请所有玩家闭眼。","👹 请莫甘娜、刺客睁眼...","🧙 请梅林睁眼...","🛡️ 请派西维尔睁眼...","☀️ 所有人调整表情..."],
+                8: ["🌙 各位玩家...","📜 本局为8人标准局","😴 现在，请所有玩家闭眼。","👹 请莫甘娜、刺客、莫德雷德睁眼...","🧙 请梅林睁眼...","🛡️ 请派西维尔睁眼...","☀️ 所有人调整表情..."],
+                10: ["🌙 各位玩家...","📜 本局为10人标准局","😴 现在，请所有玩家闭眼。","👹 请莫甘娜、刺客、莫德雷德睁眼...","🧙 请梅林睁眼...","🛡️ 请派西维尔睁眼...","☀️ 所有人调整表情..."]
             };
 
-            // ---------- 音频路径 ----------
-            function getAudioPath(number, index) {
-                return `audio/${number}/${index}.mp3`;
+            // ---------- 音频预加载 ----------
+            function getAudioPath(number, index) { return `audio/${number}/${index}.mp3`; }
+            function preloadAudio(number, index) {
+                const path = getAudioPath(number, index);
+                if (!preloadCache.has(path)) {
+                    const aud = new Audio();
+                    aud.src = path;
+                    aud.preload = 'auto';
+                    preloadCache.set(path, aud);
+                }
+            }
+            function preloadCurrentSet(number) {
+                const list = scripts[number];
+                if (!list) return;
+                for (let i = 0; i < Math.min(list.length, 3); i++) preloadAudio(number, i);
             }
 
-            function stopAudio() {
-                audio.pause();
-                audio.currentTime = 0;
-            }
+            function stopAudio() { audio.pause(); audio.currentTime = 0; }
 
             function playCurrentAudio() {
                 if (currentScript.length === 0) return;
                 stopAudio();
-                
-                // 播报开始：切换黑夜背景
                 switchToNight();
+                requestWakeLock();
 
                 const path = getAudioPath(currentNumber, currentIndex);
                 audio.src = path;
@@ -320,8 +318,10 @@
                     isPlaying = true;
                     playBtn.textContent = '⏸ 暂停';
                     audioStatus.textContent = '🔊 正在播报...';
+                    // 预加载下一句
+                    if (currentIndex + 1 < currentScript.length) preloadAudio(currentNumber, currentIndex + 1);
                 }).catch(err => {
-                    audioStatus.textContent = '⚠️ 音频加载失败，请检查文件是否存在';
+                    audioStatus.textContent = '⚠️ 音频加载失败';
                     isPlaying = false;
                     playBtn.textContent = '▶ 播放';
                 });
@@ -330,8 +330,8 @@
                     if (currentIndex < currentScript.length - 1) {
                         goToIndex(currentIndex + 1, true);
                     } else {
-                        // 播报完毕：切换白天背景
                         switchToDay();
+                        releaseWakeLock();
                         isPlaying = false;
                         playBtn.textContent = '▶ 播放';
                         audioStatus.textContent = '✅ 播报完毕';
@@ -339,12 +339,12 @@
                         renderScript();
                     }
                 };
-
                 audio.onerror = () => {
-                    audioStatus.textContent = `❌ 音频缺失：audio/${currentNumber}/${currentIndex}.mp3`;
+                    audioStatus.textContent = `❌ 音频缺失`;
                     isPlaying = false;
                     playBtn.textContent = '▶ 播放';
                     switchToDay();
+                    releaseWakeLock();
                 };
             }
 
@@ -352,13 +352,8 @@
                 if (currentScript.length === 0) return;
                 currentIndex = (newIndex + currentScript.length) % currentScript.length;
                 renderScript();
-                if (autoPlay) {
-                    playCurrentAudio();
-                } else {
-                    if (isPlaying) {
-                        playCurrentAudio();
-                    }
-                }
+                if (autoPlay) playCurrentAudio();
+                else if (isPlaying) playCurrentAudio();
             }
 
             function renderScript() {
@@ -375,13 +370,12 @@
             }
 
             function updateProgress() {
-                if (currentScript.length > 0) {
-                    progressBadge.textContent = `第${currentIndex + 1} / ${currentScript.length}句`;
-                }
+                if (currentScript.length > 0) progressBadge.textContent = `第${currentIndex + 1} / ${currentScript.length}句`;
             }
 
             function resetForNewNumber(number) {
                 stopAudio();
+                releaseWakeLock();
                 isPlaying = false;
                 playBtn.textContent = '▶ 播放';
                 currentNumber = number;
@@ -391,6 +385,7 @@
                 renderScript();
                 audioStatus.textContent = '🎵 音频就绪';
                 resetToDay();
+                preloadCurrentSet(number);
             }
 
             // ---------- 事件绑定 ----------
@@ -411,19 +406,14 @@
                     isPlaying = false;
                     playBtn.textContent = '▶ 播放';
                     audioStatus.textContent = '⏸ 已暂停';
+                    releaseWakeLock();
                 } else {
                     playCurrentAudio();
                 }
             });
 
-            nextBtn.addEventListener('click', () => {
-                if (currentScript.length === 0) return;
-                goToIndex(currentIndex + 1, isPlaying);
-            });
-            prevBtn.addEventListener('click', () => {
-                if (currentScript.length === 0) return;
-                goToIndex(currentIndex - 1, isPlaying);
-            });
+            nextBtn.addEventListener('click', () => { if (currentScript.length) goToIndex(currentIndex + 1, isPlaying); });
+            prevBtn.addEventListener('click', () => { if (currentScript.length) goToIndex(currentIndex - 1, isPlaying); });
             restartBtn.addEventListener('click', () => {
                 if (currentScript.length === 0) return;
                 stopAudio();
@@ -438,6 +428,9 @@
                 else if (e.key === 'ArrowLeft') { e.preventDefault(); goToIndex(currentIndex - 1, isPlaying); }
                 else if (e.key === ' ') { e.preventDefault(); playBtn.click(); }
             });
+
+            // 页面卸载前释放唤醒锁
+            window.addEventListener('beforeunload', () => { if (wakeLock) wakeLock.release(); });
 
             // 初始化
             resetToDay();
