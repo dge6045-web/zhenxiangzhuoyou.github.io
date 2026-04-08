@@ -20,7 +20,17 @@
             box-shadow: 0 0 10px #f1c40f;
         }
 
-        /* 背景层容器 */
+        /* ---------- 页面容器切换 ---------- */
+        .page {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .page.active {
+            display: flex;
+        }
+
+        /* ---------- 背景层（播报页专用） ---------- */
         #bgContainer {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -46,11 +56,9 @@
             color: #ecf0f1; 
             font-family: 'Segoe UI', '微软雅黑', system-ui, sans-serif; 
             padding: 16px; 
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
+        /* 标题区域 */
         .header {
             display: flex;
             align-items: center;
@@ -74,11 +82,12 @@
 
         .container { max-width: 700px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; position: relative; z-index: 2; }
 
+        /* 人数选择 */
         .number-select { text-align: center; margin-bottom: 25px; }
         .number-select p { font-size: 18px; margin-bottom: 12px; text-shadow: 1px 1px 3px black; }
         .number-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
             max-width: 400px;
             margin: 0 auto;
@@ -92,10 +101,11 @@
         }
         .number-btn.active { background: #27ae60; border-color: #2ecc71; transform: scale(0.97); }
 
+        /* 控制区域 */
         .control-area { text-align: center; margin-bottom: 20px; }
         .control-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
             max-width: 400px;
             margin: 0 auto;
@@ -106,6 +116,18 @@
             color: white; font-size: 18px; font-weight: bold; 
             cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
             border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s;
+        }
+        .enter-game-btn {
+            margin-top: 16px;
+            background: rgba(241, 196, 15, 0.9);
+            color: #1a252f;
+            padding: 16px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
         }
 
         .script-area { 
@@ -135,23 +157,112 @@
         }
         .audio-status { margin-top: 10px; font-size: 14px; opacity: 0.9; min-height: 24px; text-shadow: 1px 1px 2px black; }
 
-        /* 横屏模式优化 */
+        /* ---------- 版图页样式 ---------- */
+        #gameBoardPage {
+            position: relative;
+            background: url('images/board-bg.jpg') no-repeat center center/cover;
+        }
+        .board-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+        .board-content {
+            position: relative;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .task-icons-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+            padding: 20px;
+        }
+        .task-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            border: 3px solid rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 6px black;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            transition: all 0.2s;
+            cursor: pointer;
+            user-select: none;
+        }
+        .task-icon.state-success {
+            background: rgba(39, 174, 96, 0.8);
+            border-color: #2ecc71;
+        }
+        .task-icon.state-fail {
+            background: rgba(192, 57, 43, 0.8);
+            border-color: #e74c3c;
+        }
+        .board-actions {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .board-btn {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* 横屏优化 */
         @media (orientation: landscape) {
             body { padding: 8px; }
             .header { margin: 5px 0 10px; }
             .script-area { min-height: 200px; max-height: 40vh; }
             .number-btn { padding: 10px 12px; }
             .control-btn { padding: 10px 12px; }
-            .container { max-width: 90%; }
+            .task-icon { width: 70px; height: 70px; font-size: 36px; }
         }
 
-        /* 平板适配 */
         @media (min-width: 768px) {
             .title { font-size: 32px; }
             .script-line { font-size: 22px; }
             .number-btn { padding: 18px 20px; font-size: 20px; }
             .control-btn { padding: 16px 20px; font-size: 20px; }
             #siteLogo { height: 48px; }
+            .task-icon { width: 120px; height: 120px; font-size: 56px; }
         }
     </style>
 </head>
@@ -160,64 +271,83 @@
     <!-- 加载进度条 -->
     <div id="loaderBar"></div>
 
-    <!-- 背景容器（WebP自适应） -->
-    <div id="bgContainer">
-        <picture>
-            <source srcset="images/bg-day.webp" type="image/webp">
-            <img id="bgDay" class="bg-layer" src="images/bg-day.jpg" alt="白天背景" onerror="this.style.opacity=0;document.body.style.background='linear-gradient(145deg, #87CEEB, #f0e68c)';">
-        </picture>
-        <picture>
-            <source srcset="images/bg-night.webp" type="image/webp">
-            <img id="bgNight" class="bg-layer" src="images/bg-night.jpg" alt="黑夜背景" onerror="this.style.opacity=0;document.body.style.background='linear-gradient(145deg, #0f172a, #1a2f4e)';">
-        </picture>
+    <!-- ========== 播报页 ========== -->
+    <div id="narratorPage" class="page active">
+        <!-- 背景层 -->
+        <div id="bgContainer">
+            <picture>
+                <source srcset="images/bg-day.webp" type="image/webp">
+                <img id="bgDay" class="bg-layer" src="images/bg-day.jpg" alt="白天背景" onerror="this.style.opacity=0;document.body.style.background='linear-gradient(145deg, #87CEEB, #f0e68c)';">
+            </picture>
+            <picture>
+                <source srcset="images/bg-night.webp" type="image/webp">
+                <img id="bgNight" class="bg-layer" src="images/bg-night.jpg" alt="黑夜背景" onerror="this.style.opacity=0;document.body.style.background='linear-gradient(145deg, #0f172a, #1a2f4e)';">
+            </picture>
+        </div>
+        <div class="overlay"></div>
+
+        <div class="header">
+            <picture>
+                <source srcset="images/logo.webp" type="image/webp">
+                <img id="siteLogo" src="images/logo.png" alt="真香桌游Logo" onerror="this.style.display='none'">
+            </picture>
+            <h1 class="title">真香桌游·阿瓦隆</h1>
+        </div>
+
+        <div class="container">
+            <div class="number-select">
+                <p>👥 选择游戏人数</p>
+                <div class="number-grid">
+                    <button class="number-btn" data-number="5">5-6人局</button>
+                    <button class="number-btn" data-number="7">7人局</button>
+                    <button class="number-btn" data-number="8">8人局</button>
+                    <button class="number-btn" data-number="10">10人局</button>
+                </div>
+            </div>
+
+            <div class="control-area" style="display: none;">
+                <div style="margin-bottom: 12px;">
+                    <span class="status-badge" id="progressBadge">第1 / 7句</span>
+                </div>
+                <div class="control-grid">
+                    <button class="control-btn" id="prevBtn">⏮ 上一句</button>
+                    <button class="control-btn" id="nextBtn">⏭ 下一句</button>
+                    <button class="control-btn" id="playBtn">▶ 播放</button>
+                    <button class="control-btn" id="restartBtn">🔄 从头开始</button>
+                </div>
+                <button class="enter-game-btn" id="enterGameBtn">🎮 进入游戏</button>
+                <div class="audio-status" id="audioStatus">🎵 音频系统就绪</div>
+            </div>
+
+            <div class="script-area" id="scriptArea">
+                <p class="script-line">✨ 请先选择游戏人数，台词将自动加载</p>
+            </div>
+
+            <div class="footer">
+                <p>📱 键盘 ← → 切换 · 空格播放/暂停</p>
+            </div>
+        </div>
     </div>
-    <div class="overlay"></div>
 
-    <!-- 标题栏（Logo WebP自适应） -->
-    <div class="header">
-        <picture>
-            <source srcset="images/logo.webp" type="image/webp">
-            <img id="siteLogo" src="images/logo.png" alt="真香桌游Logo" onerror="this.style.display='none'">
-        </picture>
-        <h1 class="title">真香桌游·阿瓦隆</h1>
-    </div>
-
-    <div class="container">
-        <div class="number-select">
-            <p>👥 选择游戏人数</p>
-            <div class="number-grid">
-                <button class="number-btn" data-number="5">5人局</button>
-                <button class="number-btn" data-number="7">7人局</button>
-                <button class="number-btn" data-number="8">8人局</button>
-                <button class="number-btn" data-number="10">10人局</button>
+    <!-- ========== 版图页 ========== -->
+    <div id="gameBoardPage" class="page">
+        <div class="board-overlay"></div>
+        <button class="back-btn" id="backToNarratorBtn">← 返回主持</button>
+        <div class="board-content">
+            <div class="task-icons-container" id="taskIconsContainer"></div>
+            <div class="board-actions">
+                <button class="board-btn" id="resetRoundBtn">🔄 重置本轮</button>
             </div>
-        </div>
-
-        <div class="control-area" style="display: none;">
-            <div style="margin-bottom: 12px;">
-                <span class="status-badge" id="progressBadge">第1 / 7句</span>
-            </div>
-            <div class="control-grid">
-                <button class="control-btn" id="prevBtn">⏮ 上一句</button>
-                <button class="control-btn" id="nextBtn">⏭ 下一句</button>
-                <button class="control-btn" id="playBtn">▶ 播放</button>
-                <button class="control-btn" id="restartBtn">🔄 从头开始</button>
-            </div>
-            <div class="audio-status" id="audioStatus">🎵 音频系统就绪</div>
-        </div>
-
-        <div class="script-area" id="scriptArea">
-            <p class="script-line">✨ 请先选择游戏人数，台词将自动加载</p>
-        </div>
-
-        <div class="footer">
-            <p>📱 键盘 ← → 切换 · 空格播放/暂停</p>
         </div>
     </div>
 
     <script>
         (function() {
+            "use strict";
+
             // ---------- DOM ----------
+            const narratorPage = document.getElementById('narratorPage');
+            const gameBoardPage = document.getElementById('gameBoardPage');
             const numberBtns = document.querySelectorAll('.number-btn');
             const controlArea = document.querySelector('.control-area');
             const scriptArea = document.getElementById('scriptArea');
@@ -225,8 +355,12 @@
             const playBtn = document.getElementById('playBtn');
             const nextBtn = document.getElementById('nextBtn');
             const restartBtn = document.getElementById('restartBtn');
+            const enterGameBtn = document.getElementById('enterGameBtn');
+            const backToNarratorBtn = document.getElementById('backToNarratorBtn');
             const progressBadge = document.getElementById('progressBadge');
             const audioStatus = document.getElementById('audioStatus');
+            const taskIconsContainer = document.getElementById('taskIconsContainer');
+            const resetRoundBtn = document.getElementById('resetRoundBtn');
             const loaderBar = document.getElementById('loaderBar');
 
             const bgDay = document.getElementById('bgDay');
@@ -235,11 +369,24 @@
             // ---------- 全局变量 ----------
             let currentScript = [];
             let currentIndex = 0;
-            let currentNumber = 5;
+            let currentNumber = 5;          // 实际音频用的key（5,7,8,10）
+            let selectedPlayerCount = 5;     // 用于版图数字映射（5,6,7,8,10）
             let audio = new Audio();
             let isPlaying = false;
             let wakeLock = null;
             const preloadCache = new Map();
+
+            // 任务数字映射
+            const taskNumberMap = {
+                5: [2,3,2,3,3],
+                6: [2,3,4,3,4],
+                7: [2,3,3,4,4],
+                8: [3,4,4,5,5],
+                10:[3,4,4,5,5]
+            };
+
+            // 版图图标状态数组 (0=初始, 1=成功, 2=失败)
+            let taskStates = [0,0,0,0,0];
 
             // ---------- 加载进度模拟 ----------
             let loadProgress = 0;
@@ -256,15 +403,12 @@
                 clearInterval(progressInterval);
             });
 
-            // ---------- 屏幕常亮 (Wake Lock) ----------
+            // ---------- 屏幕常亮 ----------
             async function requestWakeLock() {
                 if ('wakeLock' in navigator) {
                     try {
                         wakeLock = await navigator.wakeLock.request('screen');
-                        wakeLock.addEventListener('release', () => console.log('Wake Lock released'));
-                    } catch (err) {
-                        console.warn('Wake Lock error:', err);
-                    }
+                    } catch (err) {}
                 }
             }
             async function releaseWakeLock() {
@@ -277,17 +421,33 @@
             // ---------- 背景切换 ----------
             function switchToNight() { bgDay.style.opacity = '0'; bgNight.style.opacity = '1'; }
             function switchToDay() { bgDay.style.opacity = '1'; bgNight.style.opacity = '0'; }
-            function resetToDay() { switchToDay(); }
 
             // ---------- 台词库 ----------
             const scripts = {
-                5: ["🌙 各位玩家，身份卡牌已分发...","📜 本局为5人标准局","😴 现在，请所有玩家闭眼。","👹 请莫甘娜、刺客睁眼...","🧙 请梅林睁眼...","🛡️ 请派西维尔睁眼...","☀️ 所有人调整表情，3、2、1，睁眼。"],
-                7: ["🌙 各位玩家...","📜 本局为7人标准局","😴 现在，请所有玩家闭眼。","👹 请莫甘娜、刺客睁眼...","🧙 请梅林睁眼...","🛡️ 请派西维尔睁眼...","☀️ 所有人调整表情..."],
-                8: ["🌙 各位玩家...","📜 本局为8人标准局","😴 现在，请所有玩家闭眼。","👹 请莫甘娜、刺客、莫德雷德睁眼...","🧙 请梅林睁眼...","🛡️ 请派西维尔睁眼...","☀️ 所有人调整表情..."],
-                10: ["🌙 各位玩家...","📜 本局为10人标准局","😴 现在，请所有玩家闭眼。","👹 请莫甘娜、刺客、莫德雷德睁眼...","🧙 请梅林睁眼...","🛡️ 请派西维尔睁眼...","☀️ 所有人调整表情..."]
+                5: [  // 5-6人通用
+                    "🌙 各位玩家，身份卡牌已分发，请确认身份，游戏即将开始。",
+                    "📜 本局为5-6人标准局",
+                    "😴 现在，请所有玩家闭眼。",
+                    "👹 请莫甘娜、刺客睁眼，互认同伴身份。",
+                    "🧙 请梅林睁眼，莫甘娜、刺客竖起拇指。",
+                    "🛡️ 请派西维尔睁眼，莫甘娜、梅林竖起拇指。",
+                    "☀️ 所有人调整表情，3、2、1，睁眼。"
+                ],
+                7: [
+                    "🌙 各位玩家，身份卡牌已分发...","📜 本局为7人标准局","😴 现在，请所有玩家闭眼。",
+                    "👹 请莫甘娜、刺客睁眼...","🧙 请梅林睁眼...","🛡️ 请派西维尔睁眼...","☀️ 所有人调整表情..."
+                ],
+                8: [
+                    "🌙 各位玩家...","📜 本局为8人标准局","😴 现在，请所有玩家闭眼。",
+                    "👹 请莫甘娜、刺客、莫德雷德睁眼...","🧙 请梅林睁眼...","🛡️ 请派西维尔睁眼...","☀️ 所有人调整表情..."
+                ],
+                10: [
+                    "🌙 各位玩家...","📜 本局为10人标准局","😴 现在，请所有玩家闭眼。",
+                    "👹 请莫甘娜、刺客、莫德雷德睁眼...","🧙 请梅林睁眼...","🛡️ 请派西维尔睁眼...","☀️ 所有人调整表情..."
+                ]
             };
 
-            // ---------- 音频预加载 ----------
+            // ---------- 音频 ----------
             function getAudioPath(number, index) { return `audio/${number}/${index}.mp3`; }
             function preloadAudio(number, index) {
                 const path = getAudioPath(number, index);
@@ -318,7 +478,6 @@
                     isPlaying = true;
                     playBtn.textContent = '⏸ 暂停';
                     audioStatus.textContent = '🔊 正在播报...';
-                    // 预加载下一句
                     if (currentIndex + 1 < currentScript.length) preloadAudio(currentNumber, currentIndex + 1);
                 }).catch(err => {
                     audioStatus.textContent = '⚠️ 音频加载失败';
@@ -373,28 +532,78 @@
                 if (currentScript.length > 0) progressBadge.textContent = `第${currentIndex + 1} / ${currentScript.length}句`;
             }
 
-            function resetForNewNumber(number) {
+            function resetForNewNumber(num) {
                 stopAudio();
                 releaseWakeLock();
                 isPlaying = false;
                 playBtn.textContent = '▶ 播放';
-                currentNumber = number;
-                currentScript = scripts[number] || [];
+                // 实际音频key：5-6人用5
+                currentNumber = (num === 5 || num === 6) ? 5 : num;
+                selectedPlayerCount = num;
+                currentScript = scripts[currentNumber] || [];
                 currentIndex = 0;
                 controlArea.style.display = 'block';
                 renderScript();
                 audioStatus.textContent = '🎵 音频就绪';
-                resetToDay();
-                preloadCurrentSet(number);
+                switchToDay();
+                preloadCurrentSet(currentNumber);
+            }
+
+            // ---------- 版图页逻辑 ----------
+            function renderTaskIcons() {
+                const numbers = taskNumberMap[selectedPlayerCount] || [2,3,2,3,3];
+                taskIconsContainer.innerHTML = '';
+                taskStates.forEach((state, idx) => {
+                    const icon = document.createElement('div');
+                    icon.className = 'task-icon';
+                    if (state === 1) icon.classList.add('state-success');
+                    else if (state === 2) icon.classList.add('state-fail');
+                    icon.textContent = numbers[idx];
+                    icon.dataset.index = idx;
+                    icon.addEventListener('click', (e) => {
+                        const i = parseInt(e.currentTarget.dataset.index);
+                        taskStates[i] = (taskStates[i] + 1) % 3;
+                        renderTaskIcons();
+                    });
+                    taskIconsContainer.appendChild(icon);
+                });
+            }
+
+            function resetTaskStates() {
+                taskStates = [0,0,0,0,0];
+                renderTaskIcons();
+            }
+
+            function switchPage(toPage) {
+                narratorPage.classList.remove('active');
+                gameBoardPage.classList.remove('active');
+                if (toPage === 'narrator') {
+                    narratorPage.classList.add('active');
+                    switchToDay();
+                } else {
+                    gameBoardPage.classList.add('active');
+                    renderTaskIcons();
+                }
             }
 
             // ---------- 事件绑定 ----------
             numberBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const num = parseInt(btn.dataset.number);
+                    let num = parseInt(btn.dataset.number);
+                    // 处理5-6人局特殊逻辑：弹出选择具体人数
+                    if (num === 5) {
+                        const choice = prompt('请输入具体人数：5 或 6', '5');
+                        if (choice === '5') num = 5;
+                        else if (choice === '6') num = 6;
+                        else { alert('请输入5或6'); return; }
+                    }
                     if (!confirm(`切换到 ${num} 人局？`)) return;
                     numberBtns.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
+                    if (num === 5 || num === 6) {
+                        document.querySelector('[data-number="5"]').classList.add('active');
+                    } else {
+                        btn.classList.add('active');
+                    }
                     resetForNewNumber(num);
                 });
             });
@@ -422,18 +631,33 @@
                 playCurrentAudio();
             });
 
+            enterGameBtn.addEventListener('click', () => {
+                if (currentScript.length === 0) { alert('请先选择人数并完成播报'); return; }
+                stopAudio();
+                releaseWakeLock();
+                isPlaying = false;
+                playBtn.textContent = '▶ 播放';
+                switchPage('board');
+            });
+
+            backToNarratorBtn.addEventListener('click', () => {
+                switchPage('narrator');
+            });
+
+            resetRoundBtn.addEventListener('click', resetTaskStates);
+
             window.addEventListener('keydown', (e) => {
+                if (!narratorPage.classList.contains('active')) return;
                 if (currentScript.length === 0) return;
                 if (e.key === 'ArrowRight') { e.preventDefault(); goToIndex(currentIndex + 1, isPlaying); }
                 else if (e.key === 'ArrowLeft') { e.preventDefault(); goToIndex(currentIndex - 1, isPlaying); }
                 else if (e.key === ' ') { e.preventDefault(); playBtn.click(); }
             });
 
-            // 页面卸载前释放唤醒锁
             window.addEventListener('beforeunload', () => { if (wakeLock) wakeLock.release(); });
 
             // 初始化
-            resetToDay();
+            switchToDay();
             renderScript();
         })();
     </script>
