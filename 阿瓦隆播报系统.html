@@ -194,7 +194,7 @@
         }
         .audio-status { margin-top: 10px; font-size: 14px; opacity: 0.9; min-height: 24px; text-shadow: 1px 1px 2px black; }
 
-        /* 版图页样式 */
+        /* ========== 版图页样式 ========== */
         #gameBoardPage {
             position: relative;
             background: url('images/board-bg.jpg') no-repeat center center/cover;
@@ -230,7 +230,8 @@
             cursor: pointer;
             z-index: 10;
         }
-        /* 横向滚动容器 */
+
+        /* 图标容器：默认竖屏可滑动（备用） */
         .task-icons-container {
             display: flex;
             flex-wrap: nowrap;
@@ -243,6 +244,32 @@
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
+
+        /* 横屏模式优化：无滚动，图标均匀分布 */
+        @media (orientation: landscape) {
+            .task-icons-container {
+                justify-content: space-evenly;
+                overflow-x: visible;
+                padding: 10px;
+                margin: 20px 0;
+                gap: 10px;
+            }
+            .task-icon {
+                width: 80px;
+                height: 80px;
+                font-size: 40px;
+            }
+            .board-content {
+                padding: 10px;
+            }
+            .back-btn {
+                top: 10px;
+                left: 10px;
+                padding: 8px 16px;
+                font-size: 16px;
+            }
+        }
+
         .task-icon {
             flex: 0 0 auto;
             width: 100px;
@@ -288,14 +315,22 @@
             cursor: pointer;
         }
 
-        /* 横屏优化 */
+        /* 平板竖屏优化 */
+        @media (min-width: 768px) and (orientation: portrait) {
+            .task-icon {
+                width: 120px;
+                height: 120px;
+                font-size: 56px;
+            }
+        }
+
+        /* 播报页横屏优化 */
         @media (orientation: landscape) {
             body { padding: 8px; }
             .header { margin: 5px 0 10px; }
             .script-area { min-height: 200px; max-height: 40vh; }
             .number-btn { padding: 10px 12px; }
             .control-btn { padding: 10px 12px; }
-            .task-icon { width: 70px; height: 70px; font-size: 36px; }
         }
 
         @media (min-width: 768px) {
@@ -304,7 +339,6 @@
             .number-btn { padding: 18px 20px; font-size: 20px; }
             .control-btn { padding: 16px 20px; font-size: 20px; }
             #siteLogo { height: 48px; }
-            .task-icon { width: 120px; height: 120px; font-size: 56px; }
         }
     </style>
 </head>
@@ -422,13 +456,13 @@
             // ---------- 全局变量 ----------
             let currentScript = [];
             let currentIndex = 0;
-            let currentNumber = 5;          // 实际音频用的key
-            let selectedPlayerCount = 5;     // 用于版图数字映射
+            let currentNumber = 5;
+            let selectedPlayerCount = 5;
             let audio = new Audio();
             let isPlaying = false;
             let wakeLock = null;
             const preloadCache = new Map();
-            let pendingNumberBtn = null;     // 暂存待处理的按钮
+            let pendingNumberBtn = null;
 
             const taskNumberMap = {
                 5: [2,3,2,3,3],
@@ -595,10 +629,9 @@
                 preloadCurrentSet(currentNumber);
             }
 
-            // 处理人数选择（带5-6浮层）
+            // 人数选择
             function handleNumberSelect(btn, targetNum) {
                 if (targetNum === 56) {
-                    // 显示选择浮层
                     pendingNumberBtn = btn;
                     choicePanel.style.display = 'flex';
                     return;
@@ -609,7 +642,6 @@
                 resetForNewNumber(targetNum);
             }
 
-            // 绑定人数按钮
             numberBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     let num = parseInt(btn.dataset.number);
@@ -617,7 +649,6 @@
                 });
             });
 
-            // 浮层选择按钮
             document.querySelectorAll('.choice-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const choice = parseInt(btn.dataset.choice);
@@ -631,7 +662,6 @@
                     }
                 });
             });
-            // 点击浮层背景关闭
             choicePanel.addEventListener('click', (e) => {
                 if (e.target === choicePanel) {
                     choicePanel.style.display = 'none';
