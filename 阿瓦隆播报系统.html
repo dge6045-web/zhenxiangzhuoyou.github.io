@@ -20,7 +20,7 @@
             box-shadow: 0 0 10px #f1c40f;
         }
 
-        /* ---------- 页面容器切换 ---------- */
+        /* 页面容器切换 */
         .page {
             display: none;
             flex-direction: column;
@@ -30,7 +30,7 @@
             display: flex;
         }
 
-        /* ---------- 背景层（播报页专用） ---------- */
+        /* 背景层（播报页） */
         #bgContainer {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -58,7 +58,6 @@
             padding: 16px; 
         }
 
-        /* 标题区域 */
         .header {
             display: flex;
             align-items: center;
@@ -100,6 +99,44 @@
             border: 1px solid rgba(255,255,255,0.2); transition: all 0.2s;
         }
         .number-btn.active { background: #27ae60; border-color: #2ecc71; transform: scale(0.97); }
+
+        /* 5-6人选择面板 */
+        .player-choice-panel {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .choice-box {
+            background: #2c3e50;
+            padding: 30px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .choice-box h3 {
+            margin-bottom: 20px;
+            color: #f1c40f;
+        }
+        .choice-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        .choice-btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 50px;
+            background: #3498db;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
         /* 控制区域 */
         .control-area { text-align: center; margin-bottom: 20px; }
@@ -157,7 +194,7 @@
         }
         .audio-status { margin-top: 10px; font-size: 14px; opacity: 0.9; min-height: 24px; text-shadow: 1px 1px 2px black; }
 
-        /* ---------- 版图页样式 ---------- */
+        /* 版图页样式 */
         #gameBoardPage {
             position: relative;
             background: url('images/board-bg.jpg') no-repeat center center/cover;
@@ -193,16 +230,21 @@
             cursor: pointer;
             z-index: 10;
         }
+        /* 横向滚动容器 */
         .task-icons-container {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             gap: 20px;
             margin: 40px 0;
             padding: 20px;
+            max-width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .task-icon {
+            flex: 0 0 auto;
             width: 100px;
             height: 100px;
             border-radius: 50%;
@@ -271,9 +313,19 @@
     <!-- 加载进度条 -->
     <div id="loaderBar"></div>
 
+    <!-- 5-6人选择浮层 -->
+    <div id="playerChoicePanel" class="player-choice-panel">
+        <div class="choice-box">
+            <h3>选择具体人数</h3>
+            <div class="choice-buttons">
+                <button class="choice-btn" data-choice="5">5 人</button>
+                <button class="choice-btn" data-choice="6">6 人</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ========== 播报页 ========== -->
     <div id="narratorPage" class="page active">
-        <!-- 背景层 -->
         <div id="bgContainer">
             <picture>
                 <source srcset="images/bg-day.webp" type="image/webp">
@@ -298,7 +350,7 @@
             <div class="number-select">
                 <p>👥 选择游戏人数</p>
                 <div class="number-grid">
-                    <button class="number-btn" data-number="5">5-6人局</button>
+                    <button class="number-btn" data-number="56">5-6人局</button>
                     <button class="number-btn" data-number="7">7人局</button>
                     <button class="number-btn" data-number="8">8人局</button>
                     <button class="number-btn" data-number="10">10人局</button>
@@ -362,6 +414,7 @@
             const taskIconsContainer = document.getElementById('taskIconsContainer');
             const resetRoundBtn = document.getElementById('resetRoundBtn');
             const loaderBar = document.getElementById('loaderBar');
+            const choicePanel = document.getElementById('playerChoicePanel');
 
             const bgDay = document.getElementById('bgDay');
             const bgNight = document.getElementById('bgNight');
@@ -369,14 +422,14 @@
             // ---------- 全局变量 ----------
             let currentScript = [];
             let currentIndex = 0;
-            let currentNumber = 5;          // 实际音频用的key（5,7,8,10）
-            let selectedPlayerCount = 5;     // 用于版图数字映射（5,6,7,8,10）
+            let currentNumber = 5;          // 实际音频用的key
+            let selectedPlayerCount = 5;     // 用于版图数字映射
             let audio = new Audio();
             let isPlaying = false;
             let wakeLock = null;
             const preloadCache = new Map();
+            let pendingNumberBtn = null;     // 暂存待处理的按钮
 
-            // 任务数字映射
             const taskNumberMap = {
                 5: [2,3,2,3,3],
                 6: [2,3,4,3,4],
@@ -385,7 +438,6 @@
                 10:[3,4,4,5,5]
             };
 
-            // 版图图标状态数组 (0=初始, 1=成功, 2=失败)
             let taskStates = [0,0,0,0,0];
 
             // ---------- 加载进度模拟 ----------
@@ -406,16 +458,11 @@
             // ---------- 屏幕常亮 ----------
             async function requestWakeLock() {
                 if ('wakeLock' in navigator) {
-                    try {
-                        wakeLock = await navigator.wakeLock.request('screen');
-                    } catch (err) {}
+                    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
                 }
             }
             async function releaseWakeLock() {
-                if (wakeLock) {
-                    await wakeLock.release();
-                    wakeLock = null;
-                }
+                if (wakeLock) { await wakeLock.release(); wakeLock = null; }
             }
 
             // ---------- 背景切换 ----------
@@ -424,7 +471,7 @@
 
             // ---------- 台词库 ----------
             const scripts = {
-                5: [  // 5-6人通用
+                5: [
                     "🌙 各位玩家，身份卡牌已分发，请确认身份，游戏即将开始。",
                     "📜 本局为5-6人标准局",
                     "😴 现在，请所有玩家闭眼。",
@@ -537,7 +584,6 @@
                 releaseWakeLock();
                 isPlaying = false;
                 playBtn.textContent = '▶ 播放';
-                // 实际音频key：5-6人用5
                 currentNumber = (num === 5 || num === 6) ? 5 : num;
                 selectedPlayerCount = num;
                 currentScript = scripts[currentNumber] || [];
@@ -549,7 +595,85 @@
                 preloadCurrentSet(currentNumber);
             }
 
-            // ---------- 版图页逻辑 ----------
+            // 处理人数选择（带5-6浮层）
+            function handleNumberSelect(btn, targetNum) {
+                if (targetNum === 56) {
+                    // 显示选择浮层
+                    pendingNumberBtn = btn;
+                    choicePanel.style.display = 'flex';
+                    return;
+                }
+                if (!confirm(`切换到 ${targetNum} 人局？`)) return;
+                numberBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                resetForNewNumber(targetNum);
+            }
+
+            // 绑定人数按钮
+            numberBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    let num = parseInt(btn.dataset.number);
+                    handleNumberSelect(btn, num);
+                });
+            });
+
+            // 浮层选择按钮
+            document.querySelectorAll('.choice-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const choice = parseInt(btn.dataset.choice);
+                    choicePanel.style.display = 'none';
+                    if (pendingNumberBtn) {
+                        if (!confirm(`切换到 ${choice} 人局？`)) return;
+                        numberBtns.forEach(b => b.classList.remove('active'));
+                        pendingNumberBtn.classList.add('active');
+                        resetForNewNumber(choice);
+                        pendingNumberBtn = null;
+                    }
+                });
+            });
+            // 点击浮层背景关闭
+            choicePanel.addEventListener('click', (e) => {
+                if (e.target === choicePanel) {
+                    choicePanel.style.display = 'none';
+                    pendingNumberBtn = null;
+                }
+            });
+
+            playBtn.addEventListener('click', () => {
+                if (currentScript.length === 0) { alert('请先选择人数'); return; }
+                if (isPlaying) {
+                    audio.pause();
+                    isPlaying = false;
+                    playBtn.textContent = '▶ 播放';
+                    audioStatus.textContent = '⏸ 已暂停';
+                    releaseWakeLock();
+                } else {
+                    playCurrentAudio();
+                }
+            });
+
+            nextBtn.addEventListener('click', () => { if (currentScript.length) goToIndex(currentIndex + 1, isPlaying); });
+            prevBtn.addEventListener('click', () => { if (currentScript.length) goToIndex(currentIndex - 1, isPlaying); });
+            restartBtn.addEventListener('click', () => {
+                if (currentScript.length === 0) return;
+                stopAudio();
+                currentIndex = 0;
+                renderScript();
+                playCurrentAudio();
+            });
+
+            enterGameBtn.addEventListener('click', () => {
+                if (currentScript.length === 0) { alert('请先选择人数并完成播报'); return; }
+                stopAudio();
+                releaseWakeLock();
+                isPlaying = false;
+                playBtn.textContent = '▶ 播放';
+                switchPage('board');
+            });
+
+            backToNarratorBtn.addEventListener('click', () => switchPage('narrator'));
+
+            // 版图逻辑
             function renderTaskIcons() {
                 const numbers = taskNumberMap[selectedPlayerCount] || [2,3,2,3,3];
                 taskIconsContainer.innerHTML = '';
@@ -585,64 +709,6 @@
                     renderTaskIcons();
                 }
             }
-
-            // ---------- 事件绑定 ----------
-            numberBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    let num = parseInt(btn.dataset.number);
-                    // 处理5-6人局特殊逻辑：弹出选择具体人数
-                    if (num === 5) {
-                        const choice = prompt('请输入具体人数：5 或 6', '5');
-                        if (choice === '5') num = 5;
-                        else if (choice === '6') num = 6;
-                        else { alert('请输入5或6'); return; }
-                    }
-                    if (!confirm(`切换到 ${num} 人局？`)) return;
-                    numberBtns.forEach(b => b.classList.remove('active'));
-                    if (num === 5 || num === 6) {
-                        document.querySelector('[data-number="5"]').classList.add('active');
-                    } else {
-                        btn.classList.add('active');
-                    }
-                    resetForNewNumber(num);
-                });
-            });
-
-            playBtn.addEventListener('click', () => {
-                if (currentScript.length === 0) { alert('请先选择人数'); return; }
-                if (isPlaying) {
-                    audio.pause();
-                    isPlaying = false;
-                    playBtn.textContent = '▶ 播放';
-                    audioStatus.textContent = '⏸ 已暂停';
-                    releaseWakeLock();
-                } else {
-                    playCurrentAudio();
-                }
-            });
-
-            nextBtn.addEventListener('click', () => { if (currentScript.length) goToIndex(currentIndex + 1, isPlaying); });
-            prevBtn.addEventListener('click', () => { if (currentScript.length) goToIndex(currentIndex - 1, isPlaying); });
-            restartBtn.addEventListener('click', () => {
-                if (currentScript.length === 0) return;
-                stopAudio();
-                currentIndex = 0;
-                renderScript();
-                playCurrentAudio();
-            });
-
-            enterGameBtn.addEventListener('click', () => {
-                if (currentScript.length === 0) { alert('请先选择人数并完成播报'); return; }
-                stopAudio();
-                releaseWakeLock();
-                isPlaying = false;
-                playBtn.textContent = '▶ 播放';
-                switchPage('board');
-            });
-
-            backToNarratorBtn.addEventListener('click', () => {
-                switchPage('narrator');
-            });
 
             resetRoundBtn.addEventListener('click', resetTaskStates);
 
