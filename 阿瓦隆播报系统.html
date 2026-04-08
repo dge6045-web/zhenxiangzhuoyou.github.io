@@ -194,29 +194,30 @@
         }
         .audio-status { margin-top: 10px; font-size: 14px; opacity: 0.9; min-height: 24px; text-shadow: 1px 1px 2px black; }
 
-        /* ========== 版图页：强制旋转90度 ========== */
+        /* ========== 版图页：固定16:9宽银幕布局 ========== */
         #gameBoardPage {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vh;      /* 旋转后宽度变为视口高度 */
-            height: 100vw;     /* 旋转后高度变为视口宽度 */
-            transform: rotate(90deg);
-            transform-origin: top left;
-            translate: 0 100%;  /* 将旋转后的容器左上角移至视口左下角，再向上移动自身高度对齐 */
-            margin-top: -100vh; /* 精确对齐顶部 */
-            background: url('images/board-bg.jpg') no-repeat center center/cover;
-            background-color: #0f172a;
-            overflow: hidden;
-            z-index: 50;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #0f172a; /* fallback */
         }
 
-        /* 背景遮罩层也要旋转适配 */
+        /* 16:9 宽银幕容器 */
+        .cinema-screen {
+            position: relative;
+            width: 100%;
+            max-width: 100vh; /* 竖屏时最大宽度为视口高度，保证比例 */
+            aspect-ratio: 16 / 9;
+            background: url('images/board-bg.jpg') no-repeat center center/cover;
+            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
         .board-overlay {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.2);
             z-index: 1;
         }
@@ -230,26 +231,26 @@
             justify-content: center;
             width: 100%;
             height: 100%;
-            padding: 20px;
+            padding: 16px;
         }
 
         .back-btn {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 12px;
+            left: 12px;
             background: rgba(0,0,0,0.5);
             backdrop-filter: blur(8px);
             color: white;
             border: 1px solid rgba(255,255,255,0.3);
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 40px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             z-index: 10;
         }
 
-        /* 图标行 */
+        /* 图标行：强制单行，不换行 */
         .task-icons-row {
             display: flex;
             flex-direction: row;
@@ -257,18 +258,15 @@
             align-items: center;
             justify-content: space-evenly;
             width: 100%;
-            max-width: 1400px;
-            margin: 20px auto;
-            padding: 10px 5%;
-            gap: 2vw;
+            height: 60%;
+            gap: 2%;
+            padding: 0 4%;
         }
 
         .task-icon {
-            flex: 0 1 auto;
-            min-width: 70px;
-            width: 15vw;
-            max-width: 150px;
-            height: auto;
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: 18%;
             aspect-ratio: 1/1;
             border-radius: 50%;
             background: rgba(255,255,255,0.2);
@@ -277,11 +275,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(28px, 8vw, 70px);
+            font-size: clamp(24px, 8vw, 80px);
             font-weight: bold;
             color: white;
             text-shadow: 2px 2px 6px black;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             transition: all 0.2s;
             cursor: pointer;
             user-select: none;
@@ -298,33 +296,31 @@
 
         .board-actions {
             display: flex;
-            gap: 20px;
-            margin-top: 10px;
+            gap: 16px;
+            margin-top: 8px;
         }
         .board-btn {
             background: rgba(0,0,0,0.6);
             backdrop-filter: blur(8px);
             color: white;
             border: 1px solid rgba(255,255,255,0.3);
-            padding: 14px 28px;
+            padding: 10px 20px;
             border-radius: 40px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
         }
 
-        /* 旋转后，文字方向也需校正？不用，用户本来就是横着看，旋转后文字方向自然就是横向的 */
-
-        /* 平板/桌面优化 */
-        @media (min-width: 768px) {
-            .title { font-size: 32px; }
-            .script-line { font-size: 22px; }
-            .number-btn { padding: 18px 20px; font-size: 20px; }
-            .control-btn { padding: 16px 20px; font-size: 20px; }
-            #siteLogo { height: 48px; }
+        /* 横屏时微调 */
+        @media (orientation: landscape) {
+            .cinema-screen {
+                max-width: 90vw;
+                max-height: 90vh;
+                width: auto;
+                height: 100%;
+            }
             .task-icon {
-                width: 140px;
-                font-size: 60px;
+                font-size: clamp(32px, 6vw, 70px);
             }
         }
 
@@ -335,6 +331,14 @@
             .script-area { min-height: 200px; max-height: 40vh; }
             .number-btn { padding: 10px 12px; }
             .control-btn { padding: 10px 12px; }
+        }
+
+        @media (min-width: 768px) {
+            .title { font-size: 32px; }
+            .script-line { font-size: 22px; }
+            .number-btn { padding: 18px 20px; font-size: 20px; }
+            .control-btn { padding: 16px 20px; font-size: 20px; }
+            #siteLogo { height: 48px; }
         }
     </style>
 </head>
@@ -411,14 +415,16 @@
         </div>
     </div>
 
-    <!-- ========== 版图页：强制旋转90度 ========== -->
+    <!-- ========== 版图页：宽银幕模式 ========== -->
     <div id="gameBoardPage" class="page">
-        <div class="board-overlay"></div>
-        <button class="back-btn" id="backToNarratorBtn">← 返回主持</button>
-        <div class="board-content">
-            <div class="task-icons-row" id="taskIconsContainer"></div>
-            <div class="board-actions">
-                <button class="board-btn" id="resetRoundBtn">🔄 重置本轮</button>
+        <div class="cinema-screen">
+            <div class="board-overlay"></div>
+            <button class="back-btn" id="backToNarratorBtn">← 返回主持</button>
+            <div class="board-content">
+                <div class="task-icons-row" id="taskIconsContainer"></div>
+                <div class="board-actions">
+                    <button class="board-btn" id="resetRoundBtn">🔄 重置本轮</button>
+                </div>
             </div>
         </div>
     </div>
